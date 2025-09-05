@@ -59,11 +59,16 @@ serve(async (req) => {
       throw new Error(`Profile not found for user ${authData.user.id}. The trigger might not have run.`);
     }
 
-    // Generate slug from restaurant name
-    const slug = restaurantName
+    // Generate slug from restaurant name - handle Arabic text properly
+    let slug = restaurantName
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-');
+      .replace(/\s+/g, '-'); // Replace spaces with hyphens
+    
+    // If the name is Arabic, generate a UUID-based slug instead
+    if (!/^[a-z0-9\-]+$/.test(slug)) {
+      const uniqueId = Date.now().toString(36);
+      slug = `restaurant-${uniqueId}`;
+    }
 
     // Create tenant
     const { data: tenantData, error: tenantError } = await supabaseAdmin

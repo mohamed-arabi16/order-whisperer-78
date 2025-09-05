@@ -232,7 +232,7 @@ const QRCodeGenerator = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 pt-16" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

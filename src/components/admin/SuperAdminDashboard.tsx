@@ -77,7 +77,7 @@ const SuperAdminDashboard = () => {
               {t('superAdmin.title')}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {t('superAdmin.welcome', { name: profile?.full_name })}
+              {t('superAdmin.welcome', { name: profile?.full_name || 'User' })}
             </p>
           </div>
         </div>
@@ -122,7 +122,9 @@ const SuperAdminDashboard = () => {
                 {tenants.filter(t => t.is_active).length}
               </div>
               <p className="text-xs text-muted-foreground">
-                {t('superAdmin.stats.activityPercentage', { percentage: Math.round((tenants.filter(t => t.is_active).length / tenants.length) * 100) || 0 })}
+                {t('superAdmin.stats.activityPercentage', { 
+                  percentage: tenants.length > 0 ? Math.round((tenants.filter(t => t.is_active).length / tenants.length) * 100) : 0 
+                })}
               </p>
             </CardContent>
           </Card>

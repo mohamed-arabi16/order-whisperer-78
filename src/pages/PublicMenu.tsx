@@ -103,17 +103,27 @@ const PublicMenu = () => {
 
   const fetchFreshData = async () => {
     try {
+      console.log('Fetching tenant with slug:', slug);
+      
       // Fetch tenant
       const { data: tenantData, error: tenantError } = await supabase
         .from('tenants')
         .select('*')
         .eq('slug', slug)
+        .eq('is_active', true)  // Only fetch active tenants
         .single();
 
-      if (tenantError || !tenantData) {
+      if (tenantError) {
+        console.error('Tenant fetch error:', tenantError);
+        throw tenantError;
+      }
+
+      if (!tenantData) {
+        console.error('No tenant data found for slug:', slug);
         throw new Error(t('publicMenu.restaurantNotFound'));
       }
 
+      console.log('Tenant found:', tenantData);
       setTenant(tenantData);
 
       // Fetch categories and menu items
@@ -131,8 +141,17 @@ const PublicMenu = () => {
           .order('display_order')
       ]);
 
-      if (categoriesResponse.error) throw categoriesResponse.error;
-      if (menuItemsResponse.error) throw menuItemsResponse.error;
+      if (categoriesResponse.error) {
+        console.error('Categories fetch error:', categoriesResponse.error);
+        throw categoriesResponse.error;
+      }
+      if (menuItemsResponse.error) {
+        console.error('Menu items fetch error:', menuItemsResponse.error);
+        throw menuItemsResponse.error;
+      }
+
+      console.log('Categories found:', categoriesResponse.data?.length || 0);
+      console.log('Menu items found:', menuItemsResponse.data?.length || 0);
 
       setCategories(categoriesResponse.data || []);
       setMenuItems(menuItemsResponse.data || []);

@@ -95,7 +95,7 @@ const RestaurantDashboard = () => {
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center" dir={isRTL ? 'rtl' : 'ltr'}>
         <Card className="w-full max-w-md shadow-warm">
           <CardHeader className="text-center">
-            <CardTitle className="text-xl">{t('restaurant.noTenant.welcome', { name: profile?.full_name })}</CardTitle>
+            <CardTitle className="text-xl">{t('restaurant.noTenant.welcome', { name: profile?.full_name || 'User' })}</CardTitle>
             <CardDescription>
               {t('restaurant.noTenant.description')}
             </CardDescription>
@@ -120,7 +120,7 @@ const RestaurantDashboard = () => {
               {t('restaurant.dashboardTitle', { restaurantName: tenant.name })}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {t('restaurant.welcome', { userName: profile?.full_name })}
+              {t('restaurant.welcome', { userName: profile?.full_name || 'User' })}
             </p>
           </div>
           <div className="flex items-center gap-3">

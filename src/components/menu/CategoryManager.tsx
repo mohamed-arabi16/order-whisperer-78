@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Plus, Edit2, GripVertical, Menu } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Category {
   id: string;
@@ -26,6 +27,7 @@ interface CategoryManagerProps {
 
 const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryManagerProps) => {
   const { toast } = useToast();
+  const { t, isRTL } = useTranslation();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryName, setCategoryName] = useState('');
@@ -34,8 +36,8 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
   const handleAddCategory = async () => {
     if (!categoryName.trim()) {
       toast({
-        title: "خطأ",
-        description: "يرجى إدخال اسم الفئة",
+        title: t('common.error'),
+        description: t('menu.categoryName') + ' ' + t('common.required'),
         variant: "destructive",
       });
       return;
@@ -43,6 +45,7 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
 
     setSaving(true);
     try {
+      console.log('Adding category with tenantId:', tenantId);
       const { data, error } = await supabase
         .from('menu_categories')
         .insert({
@@ -54,14 +57,17 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding category:', error);
+        throw error;
+      }
 
       const updatedCategories = [...categories, data];
       onCategoriesChange(updatedCategories);
       
       toast({
-        title: "تم بنجاح",
-        description: "تم إضافة الفئة الجديدة",
+        title: t('common.success'),
+        description: t('menu.categoryCreated'),
       });
 
       setCategoryName('');
@@ -69,8 +75,8 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
     } catch (error) {
       console.error('Error adding category:', error);
       toast({
-        title: "خطأ",
-        description: "حدث خطأ في إضافة الفئة",
+        title: t('common.error'),
+        description: t('common.genericError'),
         variant: "destructive",
       });
     } finally {
@@ -98,8 +104,8 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
       onCategoriesChange(updatedCategories);
 
       toast({
-        title: "تم بنجاح",
-        description: "تم تحديث الفئة",
+        title: t('common.success'),
+        description: t('menu.categoryUpdated'),
       });
 
       setEditingCategory(null);
@@ -107,8 +113,8 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
     } catch (error) {
       console.error('Error updating category:', error);
       toast({
-        title: "خطأ",
-        description: "حدث خطأ في تحديث الفئة",
+        title: t('common.error'),
+        description: t('common.genericError'),
         variant: "destructive",
       });
     } finally {
@@ -133,45 +139,45 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
       onCategoriesChange(updatedCategories);
 
       toast({
-        title: "تم بنجاح",
-        description: `تم ${isActive ? 'تفعيل' : 'إلغاء تفعيل'} الفئة`,
+        title: t('common.success'),
+        description: `${t('common.category')} ${isActive ? t('common.activated') : t('common.deactivated')}`,
       });
     } catch (error) {
       console.error('Error toggling category:', error);
       toast({
-        title: "خطأ",
-        description: "حدث خطأ في تحديث حالة الفئة",
+        title: t('common.error'),
+        description: t('common.genericError'),
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Add Category Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogTrigger asChild>
           <Button className="w-full">
-            <Plus className="h-4 w-4 ml-2" />
-            إضافة فئة جديدة
+            <Plus className="h-4 w-4 mx-2" />
+            {t('menu.addCategory')}
           </Button>
         </DialogTrigger>
-        <DialogContent dir="rtl">
+        <DialogContent dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <DialogTitle>إضافة فئة جديدة</DialogTitle>
+            <DialogTitle>{t('menu.addCategory')}</DialogTitle>
             <DialogDescription>
-              أضف فئة جديدة مثل "المشاوي" أو "المقبلات" لتنظيم قائمة الطعام
+              {t('menu.categoryDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="category-name">اسم الفئة</Label>
+              <Label htmlFor="category-name">{t('menu.categoryName')}</Label>
               <Input
                 id="category-name"
-                placeholder="مثال: المشاوي"
+                placeholder={t('menu.categoryPlaceholder')}
                 value={categoryName}
                 onChange={(e) => setCategoryName(e.target.value)}
-                dir="rtl"
+                dir={isRTL ? 'rtl' : 'ltr'}
               />
             </div>
             <div className="flex gap-2 justify-end">
@@ -179,13 +185,13 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
                 variant="outline"
                 onClick={() => setIsAddDialogOpen(false)}
               >
-                إلغاء
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleAddCategory}
                 disabled={saving}
               >
-                {saving ? 'جاري الحفظ...' : 'إضافة الفئة'}
+                {saving ? t('common.saving') : t('menu.addCategory')}
               </Button>
             </div>
           </div>
@@ -194,21 +200,21 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
 
       {/* Edit Category Dialog */}
       <Dialog open={!!editingCategory} onOpenChange={(open) => !open && setEditingCategory(null)}>
-        <DialogContent dir="rtl">
+        <DialogContent dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <DialogTitle>تعديل الفئة</DialogTitle>
+            <DialogTitle>{t('menu.editCategory')}</DialogTitle>
             <DialogDescription>
-              تحديث اسم الفئة
+              {t('menu.editCategoryDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-category-name">اسم الفئة</Label>
+              <Label htmlFor="edit-category-name">{t('menu.categoryName')}</Label>
               <Input
                 id="edit-category-name"
                 value={categoryName}
                 onChange={(e) => setCategoryName(e.target.value)}
-                dir="rtl"
+                dir={isRTL ? 'rtl' : 'ltr'}
               />
             </div>
             <div className="flex gap-2 justify-end">
@@ -216,13 +222,13 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
                 variant="outline"
                 onClick={() => setEditingCategory(null)}
               >
-                إلغاء
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleEditCategory}
                 disabled={saving}
               >
-                {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </div>
           </div>
@@ -235,13 +241,13 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
           <Card className="shadow-card">
             <CardContent className="p-12 text-center">
               <Menu className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">لا توجد فئات بعد</h3>
+              <h3 className="text-xl font-semibold mb-2">{t('menu.noCategories')}</h3>
               <p className="text-muted-foreground mb-4">
-                ابدأ بإضافة فئات لتنظيم قائمة طعام مطعمك
+                {t('menu.createFirstCategory')}
               </p>
               <Button onClick={() => setIsAddDialogOpen(true)}>
-                <Plus className="h-4 w-4 ml-2" />
-                إضافة أول فئة
+                <Plus className="h-4 w-4 mx-2" />
+                {t('menu.addCategory')}
               </Button>
             </CardContent>
           </Card>
@@ -255,14 +261,14 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
                     <div>
                       <h3 className="text-lg font-semibold">{category.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        ترتيب العرض: {index + 1}
+                        {t('menu.displayOrder')}: {index + 1}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
                       <Label htmlFor={`category-${category.id}`} className="text-sm">
-                        {category.is_active ? 'نشط' : 'غير نشط'}
+                        {category.is_active ? t('common.active') : t('common.inactive')}
                       </Label>
                       <Switch
                         id={`category-${category.id}`}
@@ -271,7 +277,7 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
                       />
                     </div>
                     <Badge variant={category.is_active ? "default" : "secondary"}>
-                      {category.is_active ? "نشط" : "غير نشط"}
+                      {category.is_active ? t('common.active') : t('common.inactive')}
                     </Badge>
                     <Button
                       variant="outline"
@@ -281,8 +287,8 @@ const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryM
                         setCategoryName(category.name);
                       }}
                     >
-                      <Edit2 className="h-4 w-4 ml-1" />
-                      تعديل
+                      <Edit2 className="h-4 w-4 mx-1" />
+                      {t('common.edit')}
                     </Button>
                   </div>
                 </div>
