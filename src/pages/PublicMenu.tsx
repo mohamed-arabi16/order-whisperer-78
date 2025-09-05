@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Minus, ShoppingCart } from 'lucide-react';
-import { generateWhatsAppMessage } from '@/lib/whatsapp';
+import { generateWhatsAppMessage } from '@/lib/whatsapp'; // WhatsApp integration
 import { useTranslation } from '@/hooks/useTranslation';
 import { useToast } from '@/hooks/use-toast';
 
