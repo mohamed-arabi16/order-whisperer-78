@@ -8,6 +8,7 @@ import { Upload, Palette, Save, Eye, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Tenant {
   id: string;
@@ -16,20 +17,21 @@ interface Tenant {
   primary_color?: string;
 }
 
-const predefinedColors = [
-  { name: 'أزرق كلاسيكي', value: '#2563eb' },
-  { name: 'أخضر طبيعي', value: '#16a34a' },
-  { name: 'برتقالي دافئ', value: '#ea580c' },
-  { name: 'أحمر أنيق', value: '#dc2626' },
-  { name: 'بنفسجي ملكي', value: '#7c3aed' },
-  { name: 'وردي حديث', value: '#e11d48' },
-  { name: 'ذهبي فاخر', value: '#d97706' },
-  { name: 'تركوازي هادئ', value: '#0891b2' },
-];
-
 const RestaurantBranding = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
+
+  const predefinedColors = [
+    { name: t('branding.colors.classicBlue'), value: '#2563eb' },
+    { name: t('branding.colors.naturalGreen'), value: '#16a34a' },
+    { name: t('branding.colors.warmOrange'), value: '#ea580c' },
+    { name: t('branding.colors.elegantRed'), value: '#dc2626' },
+    { name: t('branding.colors.royalPurple'), value: '#7c3aed' },
+    { name: t('branding.colors.modernPink'), value: '#e11d48' },
+    { name: t('branding.colors.luxuryGold'), value: '#d97706' },
+    { name: t('branding.colors.calmTurquoise'), value: '#0891b2' },
+  ];
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,8 +75,8 @@ const RestaurantBranding = () => {
     } catch (error) {
       console.error('Error fetching tenant data:', error);
       toast({
-        title: "خطأ",
-        description: "لم يتم العثور على بيانات المطعم",
+        title: t('branding.toast.tenantNotFoundTitle'),
+        description: t('branding.toast.tenantNotFoundDescription'),
         variant: "destructive",
       });
     } finally {
@@ -94,8 +96,8 @@ const RestaurantBranding = () => {
         reader.readAsDataURL(file);
       } else {
         toast({
-          title: "خطأ",
-          description: "يرجى اختيار ملف صورة صحيح",
+          title: t('branding.toast.invalidImageTitle'),
+          description: t('branding.toast.invalidImageDescription'),
           variant: "destructive",
         });
       }
@@ -125,8 +127,8 @@ const RestaurantBranding = () => {
     } catch (error) {
       console.error('Error uploading logo:', error);
       toast({
-        title: "خطأ",
-        description: "حدث خطأ في رفع الشعار",
+        title: t('branding.toast.logoUploadErrorTitle'),
+        description: t('branding.toast.logoUploadErrorDescription'),
         variant: "destructive",
       });
       return null;
@@ -164,16 +166,16 @@ const RestaurantBranding = () => {
       } : null);
 
       toast({
-        title: "تم بنجاح",
-        description: "تم حفظ تصميم المطعم",
+        title: t('branding.toast.saveSuccessTitle'),
+        description: t('branding.toast.saveSuccessDescription'),
       });
 
       setLogoFile(null);
     } catch (error) {
       console.error('Error saving branding:', error);
       toast({
-        title: "خطأ",
-        description: "حدث خطأ في حفظ التصميم",
+        title: t('branding.toast.saveErrorTitle'),
+        description: t('branding.toast.saveErrorDescription'),
         variant: "destructive",
       });
     } finally {
@@ -191,7 +193,7 @@ const RestaurantBranding = () => {
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">جاري التحميل...</p>
+          <p className="text-muted-foreground">{t('branding.loading')}</p>
         </div>
       </div>
     );
@@ -201,9 +203,9 @@ const RestaurantBranding = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center p-4" dir="rtl">
         <Card className="w-full max-w-md text-center p-8">
-          <h2 className="text-xl font-bold mb-2">خطأ</h2>
+          <h2 className="text-xl font-bold mb-2">{t('branding.error')}</h2>
           <p className="text-muted-foreground">
-            لم يتم العثور على بيانات المطعم
+            {t('branding.tenantNotFound')}
           </p>
         </Card>
       </div>
@@ -217,14 +219,14 @@ const RestaurantBranding = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold gradient-hero bg-clip-text text-transparent">
-              تخصيص التصميم والشعار
+              {t('branding.title')}
             </h1>
             <p className="text-muted-foreground mt-1">
-              خصص شعار وألوان المطعم
+              {t('branding.description')}
             </p>
           </div>
           <Button variant="outline" onClick={() => window.history.back()}>
-            العودة للوحة التحكم
+            {t('branding.backToDashboard')}
           </Button>
         </div>
 
@@ -236,10 +238,10 @@ const RestaurantBranding = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Upload className="h-5 w-5" />
-                  شعار المطعم
+                  {t('branding.logo.title')}
                 </CardTitle>
                 <CardDescription>
-                  ارفع شعار المطعم ليظهر في القائمة الرقمية (يُفضل 200x200 بكسل)
+                  {t('branding.logo.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -259,14 +261,14 @@ const RestaurantBranding = () => {
                   className="w-full"
                 >
                   <Upload className="h-4 w-4 ml-2" />
-                  {uploadingLogo ? 'جاري الرفع...' : 'اختر شعار جديد'}
+                  {uploadingLogo ? t('branding.logo.uploading') : t('branding.logo.select')}
                 </Button>
 
                 {logoPreview && (
                   <div className="relative inline-block">
                     <img
                       src={logoPreview}
-                      alt="شعار المطعم"
+                      alt={t('branding.logo.alt')}
                       className="w-32 h-32 object-cover rounded-lg border"
                     />
                     {logoFile && (
@@ -290,10 +292,10 @@ const RestaurantBranding = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Palette className="h-5 w-5" />
-                  اللون الأساسي
+                  {t('branding.color.title')}
                 </CardTitle>
                 <CardDescription>
-                  اختر اللون الأساسي للمطعم
+                  {t('branding.color.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -320,7 +322,7 @@ const RestaurantBranding = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="custom-color">أو اختر لون مخصص:</Label>
+                  <Label htmlFor="custom-color">{t('branding.color.custom')}</Label>
                   <div className="flex gap-2">
                     <Input
                       id="custom-color"
@@ -341,7 +343,7 @@ const RestaurantBranding = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">المعاينة:</span>
+                  <span className="text-sm text-muted-foreground">{t('branding.color.preview')}</span>
                   <div
                     className="w-8 h-8 rounded border"
                     style={{ backgroundColor: selectedColor }}
@@ -358,7 +360,7 @@ const RestaurantBranding = () => {
               size="lg"
             >
               <Save className="h-5 w-5 ml-2" />
-              {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+              {saving ? t('branding.saving') : t('branding.save')}
             </Button>
           </div>
 
@@ -368,10 +370,10 @@ const RestaurantBranding = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Eye className="h-5 w-5" />
-                  معاينة التصميم
+                  {t('branding.preview.title')}
                 </CardTitle>
                 <CardDescription>
-                  هكذا سيظهر التصميم في القائمة الرقمية
+                  {t('branding.preview.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -385,7 +387,7 @@ const RestaurantBranding = () => {
                           {(logoPreview || logoFile) && (
                             <img
                               src={logoPreview}
-                              alt="شعار المطعم"
+                              alt={t('branding.logo.alt')}
                               className="w-12 h-12 rounded-full object-cover border-2"
                               style={{ borderColor: selectedColor }}
                             />
@@ -398,7 +400,7 @@ const RestaurantBranding = () => {
                               {tenant.name}
                             </h1>
                             <p className="text-sm text-muted-foreground">
-                              قائمة الطعام الرقمية
+                              {t('branding.preview.menuTitle')}
                             </p>
                           </div>
                         </div>
@@ -414,20 +416,20 @@ const RestaurantBranding = () => {
                               borderColor: selectedColor + '40'
                             }}
                           >
-                            المشاوي
+                            {t('branding.preview.category')}
                           </h2>
                           <div className="space-y-2">
                             <div className="flex items-center justify-between p-3 bg-card rounded-lg shadow-sm">
                               <div>
-                                <h3 className="font-medium">شيش طاووق</h3>
+                                <h3 className="font-medium">{t('branding.preview.item.name')}</h3>
                                 <p className="text-xs text-muted-foreground">
-                                  دجاج مشوي مع الخضار
+                                  {t('branding.preview.item.description')}
                                 </p>
                                 <span 
                                   className="text-sm font-bold"
                                   style={{ color: selectedColor }}
                                 >
-                                  ٥٠٬٠٠٠ ل.ل
+                                  {t('branding.preview.item.price')}
                                 </span>
                               </div>
                               <Button 
@@ -438,7 +440,7 @@ const RestaurantBranding = () => {
                                   borderColor: selectedColor
                                 }}
                               >
-                                إضافة +
+                                {t('branding.preview.item.add')}
                               </Button>
                             </div>
                           </div>
@@ -452,7 +454,7 @@ const RestaurantBranding = () => {
                           }}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">السلة فارغة</span>
+                            <span className="text-sm font-medium">{t('branding.preview.cart.empty')}</span>
                             <Button 
                               size="sm" 
                               disabled 
@@ -462,7 +464,7 @@ const RestaurantBranding = () => {
                                 borderColor: selectedColor
                               }}
                             >
-                              إرسال عبر واتساب
+                              {t('branding.preview.cart.send')}
                             </Button>
                           </div>
                         </div>

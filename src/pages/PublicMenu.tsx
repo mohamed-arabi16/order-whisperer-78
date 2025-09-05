@@ -93,8 +93,8 @@ const PublicMenu = () => {
     } catch (error) {
       console.error('Error fetching menu data:', error);
       toast({
-        title: "خطأ",
-        description: "حدث خطأ في تحميل القائمة",
+        title: t('publicMenu.menuLoadErrorTitle'),
+        description: t('publicMenu.menuLoadErrorDescription'),
         variant: "destructive",
       });
       setLoading(false);
@@ -111,7 +111,7 @@ const PublicMenu = () => {
         .single();
 
       if (tenantError || !tenantData) {
-        throw new Error('Restaurant not found');
+        throw new Error(t('publicMenu.restaurantNotFound'));
       }
 
       setTenant(tenantData);
@@ -195,7 +195,7 @@ const PublicMenu = () => {
     if (!tenant?.phone_number) {
       toast({
         title: t('publicMenu.restaurantNotFound'),
-        description: "رقم الهاتف غير متوفر",
+        description: t('publicMenu.phoneNotAvailable'),
         variant: "destructive",
       });
       return;
@@ -228,7 +228,7 @@ const PublicMenu = () => {
       <div className="min-h-screen bg-background flex items-center justify-center" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">{t('publicMenu.restaurantNotFound')}</h1>
-          <p className="text-muted-foreground">يرجى التحقق من الرابط والمحاولة مرة أخرى</p>
+          <p className="text-muted-foreground">{t('publicMenu.checkLink')}</p>
         </div>
       </div>
     );
@@ -243,7 +243,7 @@ const PublicMenu = () => {
             {tenant.logo_url && (
               <img 
                 src={tenant.logo_url} 
-                alt={tenant.name}
+                alt={t('publicMenu.restaurantLogo')}
                 className="w-12 h-12 rounded-lg object-cover"
               />
             )}
@@ -291,7 +291,7 @@ const PublicMenu = () => {
                         {item.image_url && (
                           <img
                             src={item.image_url}
-                            alt={item.name}
+                            alt={t('publicMenu.menuItemImage')}
                             className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
                           />
                         )}
