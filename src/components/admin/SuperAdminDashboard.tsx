@@ -6,7 +6,9 @@ import { Plus, Users, Building2, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import CreateTenantDialog from './CreateTenantDialog';
+import EditTenantDialog from './EditTenantDialog';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useNavigate } from 'react-router-dom';
 
 interface Tenant {
   id: string;
@@ -15,6 +17,8 @@ interface Tenant {
   subscription_plan: string;
   is_active: boolean;
   created_at: string;
+  phone_number: string | null;
+  address: string | null;
   owner?: {
     full_name: string;
     email: string;
@@ -24,9 +28,12 @@ interface Tenant {
 const SuperAdminDashboard = () => {
   const { profile } = useAuth();
   const { t, isRTL } = useTranslation();
+  const navigate = useNavigate();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
 
   useEffect(() => {
     fetchTenants();
@@ -54,6 +61,16 @@ const SuperAdminDashboard = () => {
   const handleTenantCreated = () => {
     fetchTenants();
     setShowCreateDialog(false);
+  };
+
+  const handleTenantUpdated = () => {
+    fetchTenants();
+    setShowEditDialog(false);
+  };
+
+  const handleEditClick = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setShowEditDialog(true);
   };
 
   if (loading) {
@@ -192,10 +209,10 @@ const SuperAdminDashboard = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleEditClick(tenant)}>
                         {t('common.edit')}
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/menu/${tenant.slug}`)}>
                         {t('superAdmin.tenant.viewMenu')}
                       </Button>
                     </div>
@@ -210,6 +227,12 @@ const SuperAdminDashboard = () => {
           open={showCreateDialog}
           onOpenChange={setShowCreateDialog}
           onTenantCreated={handleTenantCreated}
+        />
+        <EditTenantDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          onTenantUpdated={handleTenantUpdated}
+          tenant={selectedTenant}
         />
       </div>
     </div>

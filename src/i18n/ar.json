@@ -398,6 +398,21 @@
     "errorTitle": "خطأ في إنشاء المطعم",
     "genericError": "حدث خطأ أثناء إنشاء حساب المطعم"
   },
+  "editTenantDialog": {
+    "title": "تعديل المطعم",
+    "description": "تحديث بيانات المطعم.",
+    "restaurantNameLabel": "اسم المطعم",
+    "restaurantNamePlaceholder": "مثال: بوابة دمشق",
+    "subscriptionPlanLabel": "خطة الاشتراك",
+    "phoneLabel": "رقم الهاتف (اختياري)",
+    "addressLabel": "العنوان (اختياري)",
+    "addressPlaceholder": "عنوان المطعم",
+    "submitButton": "حفظ التغييرات",
+    "successTitle": "تم تحديث المطعم بنجاح",
+    "successDescription": "تم تحديث حساب {{restaurantName}}.",
+    "errorTitle": "خطأ في تحديث المطعم",
+    "genericError": "حدث خطأ أثناء تحديث حساب المطعم."
+  },
   "plans": {
     "basic": "أساسي - مجاني",
     "premium": "مميز - $29/شهر",
@@ -410,5 +425,25 @@
       "title": "RestaurantOS - منصة حديثة لإدارة المطاعم",
       "description": "منصة مطاعم شاملة مع دعم اللغة العربية وطلب QR وتكامل WhatsApp لمطاعم الشرق الأوسط."
     }
+  },
+  "pricing": {
+    "title": "خطط الأسعار",
+    "description": "اختر الخطة الأنسب لمطعمك.",
+    "placeholder": "محتوى الأسعار سيكون هنا."
+  },
+  "contact": {
+    "title": "تواصل معنا",
+    "description": "تواصل معنا لأي استفسارات.",
+    "placeholder": "نموذج التواصل سيكون هنا.",
+    "formTitle": "أرسل لنا رسالة",
+    "nameLabel": "الاسم",
+    "namePlaceholder": "اسمك",
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "بريدك الإلكتروني",
+    "subjectLabel": "الموضوع",
+    "subjectPlaceholder": "موضوع رسالتك",
+    "messageLabel": "الرسالة",
+    "messagePlaceholder": "رسالتك",
+    "submitButton": "إرسال الرسالة"
   }
 }

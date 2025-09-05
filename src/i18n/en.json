@@ -398,6 +398,21 @@
     "errorTitle": "Error Creating Restaurant",
     "genericError": "An error occurred while creating the restaurant account."
   },
+  "editTenantDialog": {
+    "title": "Edit Restaurant",
+    "description": "Update the restaurant's details.",
+    "restaurantNameLabel": "Restaurant Name",
+    "restaurantNamePlaceholder": "e.g., Damascus Gate",
+    "subscriptionPlanLabel": "Subscription Plan",
+    "phoneLabel": "Phone Number (Optional)",
+    "addressLabel": "Address (Optional)",
+    "addressPlaceholder": "Restaurant Address",
+    "submitButton": "Save Changes",
+    "successTitle": "Restaurant Updated Successfully",
+    "successDescription": "Account for {{restaurantName}} has been updated.",
+    "errorTitle": "Error Updating Restaurant",
+    "genericError": "An error occurred while updating the restaurant account."
+  },
   "plans": {
     "basic": "Basic - Free",
     "premium": "Premium - $29/month",
@@ -410,5 +425,25 @@
       "title": "RestaurantOS - Modern Restaurant Management Platform",
       "description": "Comprehensive restaurant platform with Arabic support, QR ordering, and WhatsApp integration for Middle Eastern restaurants."
     }
+  },
+  "pricing": {
+    "title": "Pricing Plans",
+    "description": "Choose the best plan for your restaurant.",
+    "placeholder": "Pricing content will be here."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "description": "Get in touch with us for any inquiries.",
+    "placeholder": "Contact form will be here.",
+    "formTitle": "Send us a message",
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Your email",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "Subject of your message",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Your message",
+    "submitButton": "Send Message"
   }
 }

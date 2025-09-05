@@ -14,6 +14,8 @@ import RestaurantBranding from "./components/branding/RestaurantBranding";
 import QRCodeGenerator from "./components/qr/QRCodeGenerator";
 import NotFound from "./pages/NotFound";
 import Header from "./components/Header";
+import Pricing from "./pages/Pricing";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,8 @@ const App = () => (
               <Route path="/branding" element={<RestaurantBranding />} />
               <Route path="/qr-code" element={<QRCodeGenerator />} />
               <Route path="/menu/:slug" element={<PublicMenu />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/contact" element={<Contact />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
