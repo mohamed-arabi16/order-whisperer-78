@@ -54,114 +54,46 @@ const PublicMenu = () => {
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
 
   useEffect(() => {
-    if (slug) {
-      fetchMenuData();
-    }
-  }, [slug]);
+    const fetchMenu = async () => {
+      if (!slug) return;
 
-  // Cache menu data in localStorage for PWA offline support
-  useEffect(() => {
-    if (tenant && categories.length > 0 && menuItems.length > 0) {
-      localStorage.setItem(`menu-${slug}`, JSON.stringify({
-        tenant,
-        categories,
-        menuItems,
-        timestamp: Date.now()
-      }));
-    }
-  }, [tenant, categories, menuItems, slug]);
+      setLoading(true);
+      try {
+        console.log(`Fetching menu for slug: ${slug}`);
+        const { data, error } = await supabase.rpc('get_public_menu_data', { p_slug: slug });
 
-  const fetchMenuData = async () => {
-    try {
-      // First try to load from cache for offline support
-      const cached = localStorage.getItem(`menu-${slug}`);
-      if (cached) {
-        const { tenant: cachedTenant, categories: cachedCategories, menuItems: cachedItems, timestamp } = JSON.parse(cached);
-        // Use cached data if less than 1 hour old
-        if (Date.now() - timestamp < 3600000) {
-          setTenant(cachedTenant);
-          setCategories(cachedCategories);
-          setMenuItems(cachedItems);
-          setLoading(false);
-          
-          // Still fetch fresh data in background
-          fetchFreshData();
-          return;
+        if (error) {
+          console.error('Error calling get_public_menu_data RPC:', error);
+          throw new Error('Failed to fetch menu data.');
         }
+
+        if (!data) {
+          console.log(`No data returned for slug: ${slug}. Tenant likely not found or inactive.`);
+          setTenant(null);
+          setCategories([]);
+          setMenuItems([]);
+        } else {
+          console.log('Successfully fetched menu data:', data);
+          setTenant(data.tenant);
+          setCategories(data.categories);
+          setMenuItems(data.menu_items);
+        }
+      } catch (err) {
+        console.error('An unexpected error occurred:', err);
+        toast({
+          title: t('publicMenu.menuLoadErrorTitle'),
+          description: t('publicMenu.menuLoadErrorDescription'),
+          variant: "destructive",
+        });
+        // Ensure we don't show a broken page
+        setTenant(null);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      await fetchFreshData();
-    } catch (error) {
-      console.error('Error fetching menu data:', error);
-      toast({
-        title: t('publicMenu.menuLoadErrorTitle'),
-        description: t('publicMenu.menuLoadErrorDescription'),
-        variant: "destructive",
-      });
-      setLoading(false);
-    }
-  };
-
-  const fetchFreshData = async () => {
-    try {
-      console.log('Fetching tenant with slug:', slug);
-      
-      // Fetch tenant
-      const { data: tenantData, error: tenantError } = await supabase
-        .from('tenants')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_active', true)  // Only fetch active tenants
-        .single();
-
-      if (tenantError) {
-        console.error('Tenant fetch error:', tenantError);
-        throw tenantError;
-      }
-
-      if (!tenantData) {
-        console.error('No tenant data found for slug:', slug);
-        throw new Error(t('publicMenu.restaurantNotFound'));
-      }
-
-      console.log('Tenant found:', tenantData);
-      setTenant(tenantData);
-
-      // Fetch categories and menu items
-      const [categoriesResponse, menuItemsResponse] = await Promise.all([
-        supabase
-          .from('menu_categories')
-          .select('*')
-          .eq('tenant_id', tenantData.id)
-          .eq('is_active', true)
-          .order('display_order'),
-        supabase
-          .from('menu_items')
-          .select('*')
-          .eq('tenant_id', tenantData.id)
-          .order('display_order')
-      ]);
-
-      if (categoriesResponse.error) {
-        console.error('Categories fetch error:', categoriesResponse.error);
-        throw categoriesResponse.error;
-      }
-      if (menuItemsResponse.error) {
-        console.error('Menu items fetch error:', menuItemsResponse.error);
-        throw menuItemsResponse.error;
-      }
-
-      console.log('Categories found:', categoriesResponse.data?.length || 0);
-      console.log('Menu items found:', menuItemsResponse.data?.length || 0);
-
-      setCategories(categoriesResponse.data || []);
-      setMenuItems(menuItemsResponse.data || []);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching fresh data:', error);
-      setLoading(false);
-    }
-  };
+    fetchMenu();
+  }, [slug, t, toast]);
 
   const addToCart = (item: MenuItem) => {
     setCart(prev => {
