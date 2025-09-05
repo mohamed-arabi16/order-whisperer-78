@@ -83,7 +83,7 @@ const Header = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-background border-b border-border">
+        <div className="absolute top-16 left-0 right-0 md:hidden bg-background border-b border-border shadow-lg">
           <nav className="container mx-auto px-4 py-4 space-y-4">
             <a href="#features" className="block text-muted-foreground hover:text-foreground transition-smooth">
               {t('header.features')}

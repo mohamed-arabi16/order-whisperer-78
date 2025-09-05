@@ -6,6 +6,7 @@ import { Plus, Users, Building2, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import CreateTenantDialog from './CreateTenantDialog';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Tenant {
   id: string;
@@ -21,7 +22,8 @@ interface Tenant {
 }
 
 const SuperAdminDashboard = () => {
-  const { signOut, profile } = useAuth();
+  const { profile } = useAuth();
+  const { t, isRTL } = useTranslation();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -59,29 +61,24 @@ const SuperAdminDashboard = () => {
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">جاري تحميل البيانات...</p>
+          <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 pt-16" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold gradient-hero bg-clip-text text-transparent">
-              لوحة تحكم المدير العام
+              {t('superAdmin.title')}
             </h1>
             <p className="text-muted-foreground mt-1">
-              مرحباً {profile?.full_name} - إدارة المطاعم والحسابات
+              {t('superAdmin.welcome', { name: profile?.full_name })}
             </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button onClick={() => signOut()} variant="outline">
-              تسجيل الخروج
-            </Button>
           </div>
         </div>
 
@@ -89,20 +86,20 @@ const SuperAdminDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">إجمالي المطاعم</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('superAdmin.stats.totalRestaurants')}</CardTitle>
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{tenants.length}</div>
               <p className="text-xs text-muted-foreground">
-                {tenants.filter(t => t.is_active).length} نشط
+                {t('superAdmin.stats.activeCount', { count: tenants.filter(t => t.is_active).length })}
               </p>
             </CardContent>
           </Card>
 
           <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">الخطط المدفوعة</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('superAdmin.stats.paidPlans')}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -110,14 +107,14 @@ const SuperAdminDashboard = () => {
                 {tenants.filter(t => t.subscription_plan !== 'basic').length}
               </div>
               <p className="text-xs text-muted-foreground">
-                من أصل {tenants.length} مطعم
+                {t('superAdmin.stats.outOfTotal', { total: tenants.length })}
               </p>
             </CardContent>
           </Card>
 
           <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">الحسابات النشطة</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('superAdmin.stats.activeAccounts')}</CardTitle>
               <Settings className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -125,7 +122,7 @@ const SuperAdminDashboard = () => {
                 {tenants.filter(t => t.is_active).length}
               </div>
               <p className="text-xs text-muted-foreground">
-                {Math.round((tenants.filter(t => t.is_active).length / tenants.length) * 100)}% نسبة النشاط
+                {t('superAdmin.stats.activityPercentage', { percentage: Math.round((tenants.filter(t => t.is_active).length / tenants.length) * 100) || 0 })}
               </p>
             </CardContent>
           </Card>
@@ -136,9 +133,9 @@ const SuperAdminDashboard = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>إدارة المطاعم</CardTitle>
+                <CardTitle>{t('superAdmin.tenantsManagement.title')}</CardTitle>
                 <CardDescription>
-                  إنشاء وإدارة حسابات المطاعم على المنصة
+                  {t('superAdmin.tenantsManagement.description')}
                 </CardDescription>
               </div>
               <Button 
@@ -147,7 +144,7 @@ const SuperAdminDashboard = () => {
                 className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
-                إضافة مطعم جديد
+                {t('superAdmin.tenantsManagement.addButton')}
               </Button>
             </div>
           </CardHeader>
@@ -155,15 +152,15 @@ const SuperAdminDashboard = () => {
             {tenants.length === 0 ? (
               <div className="text-center py-8">
                 <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">لا توجد مطاعم مسجلة بعد</h3>
+                <h3 className="text-lg font-medium mb-2">{t('superAdmin.noTenants.title')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  ابدأ بإضافة أول مطعم على المنصة
+                  {t('superAdmin.noTenants.description')}
                 </p>
                 <Button 
                   onClick={() => setShowCreateDialog(true)}
                   variant="hero"
                 >
-                  إضافة مطعم جديد
+                  {t('superAdmin.tenantsManagement.addButton')}
                 </Button>
               </div>
             ) : (
@@ -180,25 +177,24 @@ const SuperAdminDashboard = () => {
                           variant={tenant.is_active ? "default" : "secondary"}
                           className={tenant.is_active ? "bg-fresh-green" : ""}
                         >
-                          {tenant.is_active ? "نشط" : "غير نشط"}
+                          {tenant.is_active ? t('common.active') : t('common.inactive')}
                         </Badge>
                         <Badge variant="outline">
-                          {tenant.subscription_plan === 'basic' ? 'أساسي' : 
-                           tenant.subscription_plan === 'premium' ? 'مميز' : 'متقدم'}
+                          {t(`plans.${tenant.subscription_plan}` as any)}
                         </Badge>
                       </div>
                       <div className="text-sm text-muted-foreground space-y-1">
-                        <p>المالك: {tenant.owner?.full_name}</p>
-                        <p>البريد: {tenant.owner?.email}</p>
-                        <p>تاريخ التسجيل: {new Date(tenant.created_at).toLocaleDateString('ar-SA')}</p>
+                        <p>{t('superAdmin.tenant.owner')}: {tenant.owner?.full_name}</p>
+                        <p>{t('superAdmin.tenant.email')}: {tenant.owner?.email}</p>
+                        <p>{t('superAdmin.tenant.registrationDate')}: {new Date(tenant.created_at).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button variant="outline" size="sm">
-                        تعديل
+                        {t('common.edit')}
                       </Button>
                       <Button variant="ghost" size="sm">
-                        عرض القائمة
+                        {t('superAdmin.tenant.viewMenu')}
                       </Button>
                     </div>
                   </div>

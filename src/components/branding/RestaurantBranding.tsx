@@ -46,24 +46,37 @@ const RestaurantBranding = () => {
   }, []);
 
   const fetchTenantData = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('tenants')
-        .select('*')
-        .eq('owner_id', profile?.id)
-        .single();
+      const { data: tenantId, error: rpcError } = await supabase.rpc('get_user_tenant');
+      if (rpcError) throw rpcError;
 
-      if (error) {
-        console.error('Error fetching tenant:', error);
-      } else {
-        setTenant(data);
-        setSelectedColor(data.primary_color || '#2563eb');
-        if (data.logo_url) {
-          setLogoPreview(data.logo_url);
+      if (tenantId) {
+        const { data, error } = await supabase
+          .from('tenants')
+          .select('*')
+          .eq('id', tenantId)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setTenant(data);
+          setSelectedColor(data.primary_color || '#2563eb');
+          if (data.logo_url) {
+            setLogoPreview(data.logo_url);
+          }
         }
+      } else {
+        console.error('No tenant found for this user.');
       }
     } catch (error) {
       console.error('Error fetching tenant data:', error);
+      toast({
+        title: "خطأ",
+        description: "لم يتم العثور على بيانات المطعم",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

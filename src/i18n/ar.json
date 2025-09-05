@@ -25,6 +25,8 @@
     "category": "الفئة",
     "available": "متوفر",
     "unavailable": "غير متوفر",
+    "active": "نشط",
+    "inactive": "غير نشط",
     "total": "المجموع",
     "currency": "ل.ل"
   },
@@ -60,33 +62,88 @@
   },
   "superAdmin": {
     "title": "لوحة تحكم المدير العام",
-    "tenantsManagement": "إدارة المطاعم",
-    "totalTenants": "إجمالي المطاعم",
-    "activeTenants": "المطاعم النشطة",
-    "recentTenants": "المطاعم الحديثة",
-    "createTenant": "إنشاء مطعم جديد",
-    "tenantName": "اسم المطعم",
-    "ownerEmail": "بريد المالك الإلكتروني",
-    "slug": "الرمز المختصر",
-    "phoneNumber": "رقم الهاتف",
-    "creating": "جاري الإنشاء...",
-    "tenantCreated": "تم إنشاء المطعم بنجاح"
+    "welcome": "مرحباً {{name}} - إدارة المطاعم والحسابات",
+    "stats": {
+      "totalRestaurants": "إجمالي المطاعم",
+      "activeCount": "{{count}} نشط",
+      "paidPlans": "الخطط المدفوعة",
+      "outOfTotal": "من أصل {{total}} مطعم",
+      "activeAccounts": "الحسابات النشطة",
+      "activityPercentage": "%{{percentage}} نسبة النشاط"
+    },
+    "tenantsManagement": {
+      "title": "إدارة المطاعم",
+      "description": "إنشاء وإدارة حسابات المطاعم على المنصة",
+      "addButton": "إضافة مطعم جديد"
+    },
+    "noTenants": {
+      "title": "لا توجد مطاعم مسجلة بعد",
+      "description": "ابدأ بإضافة أول مطعم على المنصة"
+    },
+    "tenant": {
+      "owner": "المالك",
+      "email": "البريد",
+      "registrationDate": "تاريخ التسجيل",
+      "viewMenu": "عرض القائمة"
+    }
   },
   "restaurant": {
-    "dashboard": "لوحة تحكم مطعم",
-    "menuManagement": "إدارة القائمة",
-    "branding": "العلامة التجارية", 
-    "qrCode": "رمز QR",
-    "analytics": "التحليلات",
-    "settings": "الإعدادات",
-    "menuItems": "عناصر القائمة",
-    "categories": "الفئات",
-    "orders": "الطلبات",
-    "quickActions": "إجراءات سريعة",
-    "addMenuItem": "إضافة عنصر جديد",
-    "addCategory": "إضافة فئة جديدة",
-    "viewMenu": "عرض القائمة",
-    "generateQR": "إنشاء رمز QR"
+    "dashboardTitle": "مطعم {{restaurantName}}",
+    "welcome": "مرحباً {{userName}} - لوحة تحكم المطعم",
+    "noTenant": {
+      "welcome": "مرحباً {{name}}",
+      "description": "لم يتم العثور على حساب مطعم مرتبط بهذا المستخدم",
+      "contactAdmin": "يرجى التواصل مع المدير العام لإعداد حساب المطعم"
+    },
+    "infoCard": {
+      "title": "معلومات المطعم",
+      "name": "اسم المطعم",
+      "plan": "خطة الاشتراك",
+      "phone": "رقم الهاتف",
+      "address": "العنوان"
+    },
+    "shareableLink": {
+      "title": "رابط القائمة للمشاركة",
+      "description": "شارك هذا الرابط مع عملائك لعرض القائمة الرقمية."
+    },
+    "quickActions": {
+      "menu": {
+        "title": "إدارة القائمة",
+        "description": "إضافة وتعديل الأصناف والفئات",
+        "button": "بناء القائمة"
+      },
+      "branding": {
+        "title": "التصميم والشعار",
+        "description": "تخصيص ألوان وشعار المطعم",
+        "button": "تخصيص التصميم"
+      },
+      "qr": {
+        "title": "رمز QR",
+        "description": "تحميل وطباعة رمز QR للقائمة",
+        "button": "إنشاء رمز QR"
+      }
+    },
+    "gettingStarted": {
+      "title": "دليل البدء السريع",
+      "description": "اتبع هذه الخطوات لإعداد قائمة مطعمك الرقمية",
+      "step1": {
+        "title": "إنشاء فئات القائمة",
+        "description": "ابدأ بإضافة فئات مثل \"المشاوي\" و \"المقبلات\""
+      },
+      "step2": {
+        "title": "إضافة الأصناف",
+        "description": "أضف الأطباق مع الأسعار والصور والوصف"
+      },
+      "step3": {
+        "title": "تخصيص التصميم",
+        "description": "ارفع شعار المطعم واختر الألوان المناسبة"
+      },
+      "step4": {
+        "title": "طباعة رمز QR",
+        "description": "احصل على رمز QR وضعه على طاولات المطعم"
+      },
+      "cta": "ابدأ بناء القائمة الآن"
+    }
   },
   "menu": {
     "management": "إدارة القائمة",
@@ -141,12 +198,62 @@
     "saved": "تم حفظ التغييرات"
   },
   "qr": {
-    "title": "رمز QR",
-    "generate": "إنشاء رمز QR",
-    "download": "تحميل",
-    "preview": "معاينة",
-    "menuUrl": "رابط القائمة",
-    "print": "طباعة"
+    "title": "رمز QR للقائمة الرقمية",
+    "description": "إنشاء وتحميل رمز QR للمطعم",
+    "tenantNotFound": "لم يتم العثور على بيانات المطعم",
+    "generationFailed": "فشل إنشاء رمز الاستجابة السريعة",
+    "downloadSuccess": "تم تحميل رمز QR بنجاح",
+    "copySuccess": "تم نسخ الرابط إلى الحافظة",
+    "copyFailed": "لم يتم نسخ الرابط",
+    "card": {
+      "title": "رمز QR",
+      "description": "امسح هذا الرمز للوصول إلى قائمة {{restaurantName}}"
+    },
+    "sizeLabel": "حجم الرمز:",
+    "sizes": {
+      "small": "صغير (150×150)",
+      "medium": "متوسط (200×200)",
+      "large": "كبير (300×300)",
+      "xlarge": "كبير جداً (400×400)"
+    },
+    "actions": {
+      "title": "الإجراءات",
+      "download": "تحميل رمز QR",
+      "print": "طباعة رمز QR",
+      "preview": "معاينة القائمة"
+    },
+    "menuUrl": {
+      "title": "رابط القائمة",
+      "description": "يمكن للعملاء أيضاً الوصول للقائمة مباشرة عبر هذا الرابط"
+    },
+    "instructions": {
+      "title": "كيفية الاستخدام",
+      "step1": {
+        "title": "طباعة الرمز",
+        "description": "احفظ أو اطبع رمز QR بحجم مناسب (يُفضل 5×5 سم على الأقل)"
+      },
+      "step2": {
+        "title": "وضع الرمز",
+        "description": "ضع الرمز على طاولات المطعم أو بالقرب من المدخل"
+      },
+      "step3": {
+        "title": "المسح والطلب",
+        "description": "العملاء يمسحون الرمز بكاميرا هاتفهم ويطلبون عبر واتساب"
+      }
+    },
+    "tips": {
+      "title": "نصائح هامة",
+      "tip1": "تأكد من وضوح الرمز عند الطباعة",
+      "tip2": "ضع الرمز في مكان يسهل وصول العملاء إليه",
+      "tip3": "احفظ نسخة رقمية من الرمز للاستخدام المستقبلي",
+      "tip4": "يمكنك إنشاء أحجام مختلفة للاستخدامات المختلفة"
+    },
+    "print": {
+      "title": "رمز QR",
+      "subtitle": "قائمة الطعام الرقمية",
+      "instructionsLine1": "امسح هذا الرمز بكاميرا هاتفك",
+      "instructionsLine2": "لعرض قائمة الطعام الرقمية"
+    }
   },
   "hero": {
     "title": "منصة القوائم الرقمية للمطاعم",
@@ -187,5 +294,29 @@
     "subtitle": "منصة شاملة لإدارة قوائم المطاعم الرقمية مع التكامل المباشر مع واتساب للطلبات",
     "restaurantLogin": "تسجيل الدخول للمطاعم",
     "dashboard": "لوحة التحكم"
+  },
+  "createTenantDialog": {
+    "title": "إضافة مطعم جديد",
+    "description": "إنشاء حساب مطعم جديد على المنصة مع تحديد خطة الاشتراك",
+    "restaurantNameLabel": "اسم المطعم",
+    "restaurantNamePlaceholder": "مثال: بوابة دمشق",
+    "ownerNameLabel": "اسم المالك",
+    "ownerNamePlaceholder": "الاسم الكامل",
+    "ownerEmailLabel": "البريد الإلكتروني للمالك",
+    "passwordLabel": "كلمة المرور الأولية",
+    "subscriptionPlanLabel": "خطة الاشتراك",
+    "phoneLabel": "رقم الهاتف (اختياري)",
+    "addressLabel": "العنوان (اختياري)",
+    "addressPlaceholder": "عنوان المطعم",
+    "submitButton": "إنشاء المطعم",
+    "successTitle": "تم إنشاء المطعم بنجاح",
+    "successDescription": "تم إنشاء حساب {{restaurantName}} وإرسال بيانات الدخول للمالك",
+    "errorTitle": "خطأ في إنشاء المطعم",
+    "genericError": "حدث خطأ أثناء إنشاء حساب المطعم"
+  },
+  "plans": {
+    "basic": "أساسي - مجاني",
+    "premium": "مميز - $29/شهر",
+    "enterprise": "متقدم - $99/شهر"
   }
 }

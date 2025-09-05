@@ -45,16 +45,16 @@ const MenuManagement = () => {
 
   const fetchTenantAndMenu = async () => {
     try {
-      // Get tenant ID first
-      const { data: tenant } = await supabase
-        .from('tenants')
-        .select('id')
-        .eq('owner_id', profile?.id)
-        .single();
+      // Get tenant ID using the RPC function
+      const { data: tenantId, error: rpcError } = await supabase.rpc('get_user_tenant');
 
-      if (tenant) {
-        setTenantId(tenant.id);
-        await fetchMenuData(tenant.id);
+      if (rpcError) throw rpcError;
+
+      if (tenantId) {
+        setTenantId(tenantId);
+        await fetchMenuData(tenantId);
+      } else {
+        throw new Error("User has no tenant");
       }
     } catch (error) {
       console.error('Error fetching menu data:', error);
@@ -99,7 +99,7 @@ const MenuManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 pt-16" dir="rtl">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
