@@ -39,7 +39,9 @@
     "signIn": "تسجيل الدخول",
     "getStarted": "ابدأ الآن",
     "dashboard": "لوحة التحكم",
-    "signOut": "تسجيل الخروج"
+    "signOut": "تسجيل الخروج",
+    "switchLanguage": "التبديل إلى الإنجليزية",
+    "languageName": "EN"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -143,6 +145,12 @@
         "description": "احصل على رمز QR وضعه على طاولات المطعم"
       },
       "cta": "ابدأ بناء القائمة الآن"
+    },
+    "toast": {
+      "copySuccessTitle": "تم النسخ",
+      "copySuccessDescription": "تم نسخ الرابط إلى الحافظة",
+      "copyErrorTitle": "خطأ",
+      "copyErrorDescription": "لم يتم نسخ الرابط"
     }
   },
   "menu": {
@@ -185,7 +193,13 @@
     "emptyCart": "السلة فارغة",
     "itemsInCart": "عنصر في السلة",
     "orderSummary": "ملخص الطلب",
-    "restaurantNotFound": "المطعم غير موجود"
+    "restaurantNotFound": "المطعم غير موجود",
+    "menuLoadErrorTitle": "خطأ",
+    "menuLoadErrorDescription": "حدث خطأ في تحميل القائمة",
+    "phoneNotAvailable": "رقم الهاتف غير متوفر",
+    "checkLink": "يرجى التحقق من الرابط والمحاولة مرة أخرى",
+    "restaurantLogo": "شعار المطعم",
+    "menuItemImage": "صورة عنصر القائمة"
   },
   "branding": {
     "title": "العلامة التجارية",
@@ -195,7 +209,64 @@
     "restaurantName": "اسم المطعم",
     "preview": "معاينة",
     "save": "حفظ التغييرات",
-    "saved": "تم حفظ التغييرات"
+    "saved": "تم حفظ التغييرات",
+    "colors": {
+      "classicBlue": "أزرق كلاسيكي",
+      "naturalGreen": "أخضر طبيعي",
+      "warmOrange": "برتقالي دافئ",
+      "elegantRed": "أحمر أنيق",
+      "royalPurple": "بنفسجي ملكي",
+      "modernPink": "وردي حديث",
+      "luxuryGold": "ذهبي فاخر",
+      "calmTurquoise": "تركوازي هادئ"
+    },
+    "toast": {
+      "tenantNotFoundTitle": "خطأ",
+      "tenantNotFoundDescription": "لم يتم العثور على بيانات المطعم",
+      "invalidImageTitle": "خطأ",
+      "invalidImageDescription": "يرجى اختيار ملف صورة صحيح",
+      "logoUploadErrorTitle": "خطأ",
+      "logoUploadErrorDescription": "حدث خطأ في رفع الشعار",
+      "saveSuccessTitle": "تم بنجاح",
+      "saveSuccessDescription": "تم حفظ تصميم المطعم",
+      "saveErrorTitle": "خطأ",
+      "saveErrorDescription": "حدث خطأ في حفظ التصميم"
+    },
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "tenantNotFound": "لم يتم العثور على بيانات المطعم",
+    "description": "خصص شعار وألوان المطعم",
+    "backToDashboard": "العودة للوحة التحكم",
+    "logo": {
+      "title": "شعار المطعم",
+      "description": "ارفع شعار المطعم ليظهر في القائمة الرقمية (يُفضل 200x200 بكسل)",
+      "uploading": "جاري الرفع...",
+      "select": "اختر شعار جديد",
+      "alt": "شعار المطعم"
+    },
+    "color": {
+      "title": "اللون الأساسي",
+      "description": "اختر اللون الأساسي للمطعم",
+      "custom": "أو اختر لون مخصص:",
+      "preview": "المعاينة:"
+    },
+    "saving": "جاري الحفظ...",
+    "preview": {
+      "title": "معاينة التصميم",
+      "description": "هكذا سيظهر التصميم في القائمة الرقمية",
+      "menuTitle": "قائمة الطعام الرقمية",
+      "category": "المشاوي",
+      "item": {
+        "name": "شيش طاووق",
+        "description": "دجاج مشوي مع الخضار",
+        "price": "٥٠٬٠٠٠ ل.ل",
+        "add": "إضافة +"
+      },
+      "cart": {
+        "empty": "السلة فارغة",
+        "send": "إرسال عبر واتساب"
+      }
+    }
   },
   "qr": {
     "title": "رمز QR للقائمة الرقمية",
@@ -318,5 +389,13 @@
     "basic": "أساسي - مجاني",
     "premium": "مميز - $29/شهر",
     "enterprise": "متقدم - $99/شهر"
+  },
+  "meta": {
+    "title": "RestaurantOS - منصة حديثة لإدارة المطاعم",
+    "description": "قم بتبسيط عمليات مطعمك من خلال الإدارة متعددة المستأجرين ، ومنشئ القائمة العربية ، وطلب QR ، وتكامل WhatsApp. مثالي للمطاعم في الشرق الأوسط.",
+    "og": {
+      "title": "RestaurantOS - منصة حديثة لإدارة المطاعم",
+      "description": "منصة مطاعم شاملة مع دعم اللغة العربية وطلب QR وتكامل WhatsApp لمطاعم الشرق الأوسط."
+    }
   }
 }

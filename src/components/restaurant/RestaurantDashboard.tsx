@@ -42,13 +42,13 @@ const RestaurantDashboard = () => {
     try {
       await navigator.clipboard.writeText(text);
       toast({
-        title: "تم النسخ",
-        description: "تم نسخ الرابط إلى الحافظة",
+        title: t('restaurant.toast.copySuccessTitle'),
+        description: t('restaurant.toast.copySuccessDescription'),
       });
     } catch (error) {
       toast({
-        title: "خطأ",
-        description: "لم يتم نسخ الرابط",
+        title: t('restaurant.toast.copyErrorTitle'),
+        description: t('restaurant.toast.copyErrorDescription'),
         variant: "destructive",
       });
     }

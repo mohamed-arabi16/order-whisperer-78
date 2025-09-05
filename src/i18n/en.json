@@ -39,7 +39,9 @@
     "signIn": "Sign In",
     "getStarted": "Get Started",
     "dashboard": "Dashboard",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "switchLanguage": "Switch to Arabic",
+    "languageName": "عر"
   },
   "auth": {
     "signIn": "Sign In",
@@ -143,6 +145,12 @@
         "description": "Get the QR code and place it on the restaurant tables"
       },
       "cta": "Start Building Your Menu Now"
+    },
+    "toast": {
+      "copySuccessTitle": "Copied",
+      "copySuccessDescription": "Link copied to clipboard",
+      "copyErrorTitle": "Error",
+      "copyErrorDescription": "Failed to copy link"
     }
   },
   "menu": {
@@ -185,7 +193,13 @@
     "emptyCart": "Cart is empty",
     "itemsInCart": "items in cart",
     "orderSummary": "Order Summary",
-    "restaurantNotFound": "Restaurant not found"
+    "restaurantNotFound": "Restaurant not found",
+    "menuLoadErrorTitle": "Error",
+    "menuLoadErrorDescription": "There was an error loading the menu",
+    "phoneNotAvailable": "Phone number is not available",
+    "checkLink": "Please check the link and try again",
+    "restaurantLogo": "Restaurant Logo",
+    "menuItemImage": "Menu Item Image"
   },
   "branding": {
     "title": "Branding",
@@ -195,7 +209,64 @@
     "restaurantName": "Restaurant Name",
     "preview": "Preview",
     "save": "Save Changes",
-    "saved": "Changes saved"
+    "saved": "Changes saved",
+    "colors": {
+      "classicBlue": "Classic Blue",
+      "naturalGreen": "Natural Green",
+      "warmOrange": "Warm Orange",
+      "elegantRed": "Elegant Red",
+      "royalPurple": "Royal Purple",
+      "modernPink": "Modern Pink",
+      "luxuryGold": "Luxury Gold",
+      "calmTurquoise": "Calm Turquoise"
+    },
+    "toast": {
+      "tenantNotFoundTitle": "Error",
+      "tenantNotFoundDescription": "Restaurant data not found",
+      "invalidImageTitle": "Error",
+      "invalidImageDescription": "Please select a valid image file",
+      "logoUploadErrorTitle": "Error",
+      "logoUploadErrorDescription": "There was an error uploading the logo",
+      "saveSuccessTitle": "Success",
+      "saveSuccessDescription": "Restaurant branding has been saved",
+      "saveErrorTitle": "Error",
+      "saveErrorDescription": "There was an error saving the branding"
+    },
+    "loading": "Loading...",
+    "error": "Error",
+    "tenantNotFound": "Restaurant data not found",
+    "description": "Customize your restaurant's logo and colors",
+    "backToDashboard": "Back to Dashboard",
+    "logo": {
+      "title": "Restaurant Logo",
+      "description": "Upload your restaurant's logo to be displayed on the digital menu (200x200px recommended)",
+      "uploading": "Uploading...",
+      "select": "Select new logo",
+      "alt": "Restaurant Logo"
+    },
+    "color": {
+      "title": "Primary Color",
+      "description": "Choose the primary color for your restaurant",
+      "custom": "Or choose a custom color:",
+      "preview": "Preview:"
+    },
+    "saving": "Saving...",
+    "preview": {
+      "title": "Design Preview",
+      "description": "This is how the design will appear on the digital menu",
+      "menuTitle": "Digital Menu",
+      "category": "Grills",
+      "item": {
+        "name": "Shish Tawook",
+        "description": "Grilled chicken with vegetables",
+        "price": "50,000 LBP",
+        "add": "Add +"
+      },
+      "cart": {
+        "empty": "Cart is empty",
+        "send": "Send via WhatsApp"
+      }
+    }
   },
   "qr": {
     "title": "Digital Menu QR Code",
@@ -318,5 +389,13 @@
     "basic": "Basic - Free",
     "premium": "Premium - $29/month",
     "enterprise": "Enterprise - $99/month"
+  },
+  "meta": {
+    "title": "RestaurantOS - Modern Restaurant Management Platform",
+    "description": "Streamline your restaurant operations with multi-tenant management, Arabic menu builder, QR ordering, and WhatsApp integration. Perfect for Middle Eastern restaurants.",
+    "og": {
+      "title": "RestaurantOS - Modern Restaurant Management Platform",
+      "description": "Comprehensive restaurant platform with Arabic support, QR ordering, and WhatsApp integration for Middle Eastern restaurants."
+    }
   }
 }

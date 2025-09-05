@@ -36,6 +36,14 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
     // Set document direction and lang attribute
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
+
+    // Update meta tags
+    const newTranslations = translations[language];
+    document.title = newTranslations.meta.title;
+    document.querySelector('meta[name="description"]')?.setAttribute('content', newTranslations.meta.description);
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', newTranslations.meta.og.title);
+    document.querySelector('meta[property="og:description"]')?.setAttribute('content', newTranslations.meta.og.description);
+
   }, [language]);
 
   const handleSetLanguage = (lang: Language) => {
