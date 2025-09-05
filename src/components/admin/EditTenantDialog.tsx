@@ -1,7 +1,27 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -19,6 +39,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
+
+const editTenantSchema = z.object({
+  name: z.string().min(2, { message: "Restaurant name must be at least 2 characters." }),
+  subscription_plan: z.enum(['basic', 'premium', 'enterprise']),
+  phone_number: z.string().optional(),
+  address: z.string().optional(),
+});
 
 /**
  * Represents a tenant object.
@@ -68,39 +95,40 @@ const EditTenantDialog = ({
   tenant,
 }: EditTenantDialogProps): JSX.Element => {
   const { t, isRTL } = useTranslation();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    subscription_plan: 'basic' as 'basic' | 'premium' | 'enterprise',
-    phone_number: '',
-    address: ''
+  const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
+
+  const form = useForm<z.infer<typeof editTenantSchema>>({
+    resolver: zodResolver(editTenantSchema),
+    defaultValues: {
+      name: "",
+      subscription_plan: "basic",
+      phone_number: "",
+      address: "",
+    },
   });
 
   useEffect(() => {
-    if (tenant) {
-      setFormData({
+    if (tenant && open) {
+      form.reset({
         name: tenant.name,
         subscription_plan: tenant.subscription_plan as 'basic' | 'premium' | 'enterprise',
         phone_number: tenant.phone_number || '',
         address: tenant.address || ''
       });
     }
-  }, [tenant]);
+  }, [tenant, open, form]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
+  const handleSubmit = async (values: z.infer<typeof editTenantSchema>) => {
     if (!tenant) return;
 
     try {
       const { error } = await supabase
         .from('tenants')
         .update({
-          name: formData.name,
-          subscription_plan: formData.subscription_plan,
-          phone_number: formData.phone_number,
-          address: formData.address,
+          name: values.name,
+          subscription_plan: values.subscription_plan,
+          phone_number: values.phone_number,
+          address: values.address,
         })
         .eq('id', tenant.id);
 
@@ -108,10 +136,11 @@ const EditTenantDialog = ({
 
       toast({
         title: t('editTenantDialog.successTitle'),
-        description: t('editTenantDialog.successDescription', { restaurantName: formData.name })
+        description: t('editTenantDialog.successDescription', { restaurantName: values.name })
       });
 
       onTenantUpdated();
+      onOpenChange(false);
     } catch (error) {
       console.error('Error updating tenant:', error);
       const errorMessage = error instanceof Error ? error.message : t('editTenantDialog.genericError');
@@ -121,94 +150,147 @@ const EditTenantDialog = ({
         title: t('editTenantDialog.errorTitle'),
         description: errorMessage
       });
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen && form.formState.isDirty) {
+      setShowUnsavedChangesDialog(true);
+    } else {
+      onOpenChange(isOpen);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" dir={isRTL ? 'rtl' : 'ltr'}>
-        <DialogHeader>
-          <DialogTitle>{t('editTenantDialog.title')}</DialogTitle>
+    <>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-md" dir={isRTL ? 'rtl' : 'ltr'}>
+          <DialogHeader>
+            <DialogTitle>{t('editTenantDialog.title')}</DialogTitle>
           <DialogDescription>
             {t('editTenantDialog.description')}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="restaurant-name">{t('editTenantDialog.restaurantNameLabel')}</Label>
-            <Input
-              id="restaurant-name"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder={t('editTenantDialog.restaurantNamePlaceholder')}
-              className={isRTL ? 'text-right' : 'text-left'}
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('editTenantDialog.restaurantNameLabel')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t('editTenantDialog.restaurantNamePlaceholder')}
+                      className={isRTL ? 'text-right' : 'text-left'}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="subscription-plan">{t('editTenantDialog.subscriptionPlanLabel')}</Label>
-            <Select
-              value={formData.subscription_plan}
-              onValueChange={(value: 'basic' | 'premium' | 'enterprise') =>
-                setFormData(prev => ({ ...prev, subscription_plan: value }))
-              }
-              dir={isRTL ? 'rtl' : 'ltr'}
-            >
-              <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="basic">{t('plans.basic')}</SelectItem>
-                <SelectItem value="premium">{t('plans.premium')}</SelectItem>
-                <SelectItem value="enterprise">{t('plans.enterprise')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phone">{t('editTenantDialog.phoneLabel')}</Label>
-            <Input
-              id="phone"
-              value={formData.phone_number}
-              onChange={(e) => setFormData(prev => ({ ...prev, phone_number: e.target.value }))}
-              placeholder="+963 xxx xxx xxx"
-              className="text-left"
+            <FormField
+              control={form.control}
+              name="subscription_plan"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('editTenantDialog.subscriptionPlanLabel')}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    dir={isRTL ? 'rtl' : 'ltr'}
+                  >
+                    <FormControl>
+                      <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="basic">{t('plans.basic')}</SelectItem>
+                      <SelectItem value="premium">{t('plans.premium')}</SelectItem>
+                      <SelectItem value="enterprise">{t('plans.enterprise')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="address">{t('editTenantDialog.addressLabel')}</Label>
-            <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-              placeholder={t('editTenantDialog.addressPlaceholder')}
-              className={isRTL ? 'text-right' : 'text-left'}
+            <FormField
+              control={form.control}
+              name="phone_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('editTenantDialog.phoneLabel')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="+963 xxx xxx xxx"
+                      className="text-left"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              variant="hero"
-            >
-              {loading ? t('common.loading') : t('editTenantDialog.submitButton')}
-            </Button>
-          </div>
-        </form>
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('editTenantDialog.addressLabel')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t('editTenantDialog.addressPlaceholder')}
+                      className={isRTL ? 'text-right' : 'text-left'}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+                variant="hero"
+              >
+                {form.formState.isSubmitting ? t('common.loading') : t('editTenantDialog.submitButton')}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
+    <AlertDialog open={showUnsavedChangesDialog} onOpenChange={setShowUnsavedChangesDialog}>
+      <AlertDialogContent dir={isRTL ? 'rtl' : 'ltr'}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('common.unsavedChanges')}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t('common.unsavedChangesDescription')}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t('common.stay')}</AlertDialogCancel>
+          <AlertDialogAction onClick={() => onOpenChange(false)}>
+            {t('common.leave')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 };
 

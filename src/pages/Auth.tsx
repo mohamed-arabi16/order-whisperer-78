@@ -1,8 +1,18 @@
-import { useState } from "react";
 import { Navigate } from "react-router-dom";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -12,6 +22,18 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/hooks/useTranslation";
+
+const signInSchema = z.object({
+  email: z.string().email({ message: "Invalid email address." }),
+  password: z.string().min(1, { message: "Password is required." }),
+});
+
+const signUpSchema = z.object({
+  fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
+  email: z.string().email({ message: "Invalid email address." }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+});
 
 /**
  * A page component for user authentication.
@@ -21,36 +43,36 @@ import { useAuth } from "@/hooks/useAuth";
  */
 const Auth = (): JSX.Element => {
   const { user, signUp, signIn, loading } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const { t, isRTL } = useTranslation();
+
+  const signInForm = useForm<z.infer<typeof signInSchema>>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const signUpForm = useForm<z.infer<typeof signUpSchema>>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+    },
+  });
 
   // Redirect if already authenticated
   if (user && !loading) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const fullName = formData.get('fullName') as string;
-    
-    await signUp(email, password, fullName);
-    setIsLoading(false);
+  const handleSignUp = async (values: z.infer<typeof signUpSchema>) => {
+    await signUp(values.email, values.password, values.fullName);
   };
 
-  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    
-    await signIn(email, password);
-    setIsLoading(false);
+  const handleSignIn = async (values: z.infer<typeof signInSchema>) => {
+    await signIn(values.email, values.password);
   };
 
   if (loading) {
@@ -65,103 +87,140 @@ const Auth = (): JSX.Element => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center p-4" dir={isRTL ? "rtl" : "ltr"}>
       <Card className="w-full max-w-md shadow-warm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold gradient-hero bg-clip-text text-transparent">
-            نظام إدارة المطاعم
+            {t('auth.title')}
           </CardTitle>
           <CardDescription className="text-base">
-            منصة القوائم الرقمية والطلبات عبر واتساب
+            {t('auth.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">تسجيل الدخول</TabsTrigger>
-              <TabsTrigger value="signup">حساب جديد</TabsTrigger>
+              <TabsTrigger value="signin">{t('auth.signInTab')}</TabsTrigger>
+              <TabsTrigger value="signup">{t('auth.signUpTab')}</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="signin" className="space-y-4">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">البريد الإلكتروني</Label>
-                  <Input 
-                    id="signin-email" 
-                    name="email" 
-                    type="email" 
-                    required 
-                    className="text-right"
-                    placeholder="example@domain.com"
+            <TabsContent value="signin">
+              <Form {...signInForm}>
+                <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4">
+                  <FormField
+                    control={signInForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('auth.emailLabel')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="example@domain.com"
+                            {...field}
+                            className={isRTL ? "text-right" : "text-left"}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">كلمة المرور</Label>
-                  <Input 
-                    id="signin-password" 
-                    name="password" 
-                    type="password" 
-                    required 
-                    className="text-right"
-                    placeholder="••••••••"
+                  <FormField
+                    control={signInForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('auth.passwordLabel')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            {...field}
+                            className={isRTL ? "text-right" : "text-left"}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading}
-                  variant="hero"
-                >
-                  {isLoading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
-                </Button>
-              </form>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={signInForm.formState.isSubmitting}
+                    variant="hero"
+                  >
+                    {signInForm.formState.isSubmitting ? t('auth.signingInButton') : t('auth.signInButton')}
+                  </Button>
+                </form>
+              </Form>
             </TabsContent>
             
-            <TabsContent value="signup" className="space-y-4">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">الاسم الكامل</Label>
-                  <Input 
-                    id="signup-name" 
-                    name="fullName" 
-                    type="text" 
-                    required 
-                    className="text-right"
-                    placeholder="الاسم الكامل"
+            <TabsContent value="signup">
+              <Form {...signUpForm}>
+                <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
+                <FormField
+                    control={signUpForm.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('auth.fullNameLabel')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={t('auth.fullNamePlaceholder')}
+                            {...field}
+                            className={isRTL ? "text-right" : "text-left"}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">البريد الإلكتروني</Label>
-                  <Input 
-                    id="signup-email" 
-                    name="email" 
-                    type="email" 
-                    required 
-                    className="text-right"
-                    placeholder="example@domain.com"
+                  <FormField
+                    control={signUpForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('auth.emailLabel')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="example@domain.com"
+                            {...field}
+                            className={isRTL ? "text-right" : "text-left"}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">كلمة المرور</Label>
-                  <Input 
-                    id="signup-password" 
-                    name="password" 
-                    type="password" 
-                    required 
-                    minLength={6}
-                    className="text-right"
-                    placeholder="••••••••"
+                  <FormField
+                    control={signUpForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('auth.passwordLabel')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            {...field}
+                            className={isRTL ? "text-right" : "text-left"}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading}
-                  variant="hero"
-                >
-                  {isLoading ? "جاري إنشاء الحساب..." : "إنشاء حساب جديد"}
-                </Button>
-              </form>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={signUpForm.formState.isSubmitting}
+                    variant="hero"
+                  >
+                    {signUpForm.formState.isSubmitting ? t('auth.signingUpButton') : t('auth.signUpButton')}
+                  </Button>
+                </form>
+              </Form>
             </TabsContent>
           </Tabs>
         </CardContent>

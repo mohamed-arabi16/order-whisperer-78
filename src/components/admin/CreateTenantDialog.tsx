@@ -1,7 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -19,6 +39,16 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
+
+const createTenantSchema = z.object({
+  restaurantName: z.string().min(2, { message: "Restaurant name must be at least 2 characters." }),
+  ownerName: z.string().min(2, { message: "Owner name must be at least 2 characters." }),
+  ownerEmail: z.string().email({ message: "Invalid email address." }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  subscriptionPlan: z.enum(['basic', 'premium', 'enterprise']),
+  phoneNumber: z.string().optional(),
+  address: z.string().optional(),
+});
 
 /**
  * Props for the CreateTenantDialog component.
@@ -52,45 +82,42 @@ const CreateTenantDialog = ({
   onTenantCreated,
 }: CreateTenantDialogProps): JSX.Element => {
   const { t, isRTL } = useTranslation();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    restaurantName: '',
-    ownerName: '',
-    ownerEmail: '',
-    password: '',
-    subscriptionPlan: 'basic' as 'basic' | 'premium' | 'enterprise',
-    phoneNumber: '',
-    address: ''
+  const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
+
+  const form = useForm<z.infer<typeof createTenantSchema>>({
+    resolver: zodResolver(createTenantSchema),
+    defaultValues: {
+      restaurantName: "",
+      ownerName: "",
+      ownerEmail: "",
+      password: "",
+      subscriptionPlan: "basic",
+      phoneNumber: "",
+      address: "",
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  useEffect(() => {
+    if (open) {
+      form.reset();
+    }
+  }, [open, form]);
 
+  const handleSubmit = async (values: z.infer<typeof createTenantSchema>) => {
     try {
-      const { data, error } = await supabase.functions.invoke('create-tenant', {
-        body: formData,
+      const { error } = await supabase.functions.invoke('create-tenant', {
+        body: values,
       });
 
       if (error) throw error;
 
       toast({
         title: t('createTenantDialog.successTitle'),
-        description: t('createTenantDialog.successDescription', { restaurantName: formData.restaurantName })
-      });
-
-      // Reset form
-      setFormData({
-        restaurantName: '',
-        ownerName: '',
-        ownerEmail: '',
-        password: '',
-        subscriptionPlan: 'basic',
-        phoneNumber: '',
-        address: ''
+        description: t('createTenantDialog.successDescription', { restaurantName: values.restaurantName })
       });
 
       onTenantCreated();
+      onOpenChange(false);
     } catch (error) {
       console.error('Error creating tenant:', error);
       const errorMessage = error instanceof Error ? error.message : t('createTenantDialog.genericError');
@@ -100,134 +127,204 @@ const CreateTenantDialog = ({
         title: t('createTenantDialog.errorTitle'),
         description: errorMessage
       });
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen && form.formState.isDirty) {
+      setShowUnsavedChangesDialog(true);
+    } else {
+      onOpenChange(isOpen);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" dir={isRTL ? 'rtl' : 'ltr'}>
-        <DialogHeader>
-          <DialogTitle>{t('createTenantDialog.title')}</DialogTitle>
+    <>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-md" dir={isRTL ? 'rtl' : 'ltr'}>
+          <DialogHeader>
+            <DialogTitle>{t('createTenantDialog.title')}</DialogTitle>
           <DialogDescription>
             {t('createTenantDialog.description')}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="restaurant-name">{t('createTenantDialog.restaurantNameLabel')}</Label>
-            <Input
-              id="restaurant-name"
-              value={formData.restaurantName}
-              onChange={(e) => setFormData(prev => ({ ...prev, restaurantName: e.target.value }))}
-              placeholder={t('createTenantDialog.restaurantNamePlaceholder')}
-              className={isRTL ? 'text-right' : 'text-left'}
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="restaurantName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('createTenantDialog.restaurantNameLabel')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t('createTenantDialog.restaurantNamePlaceholder')}
+                      className={isRTL ? 'text-right' : 'text-left'}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="owner-name">{t('createTenantDialog.ownerNameLabel')}</Label>
-              <Input
-                id="owner-name"
-                value={formData.ownerName}
-                onChange={(e) => setFormData(prev => ({ ...prev, ownerName: e.target.value }))}
-                placeholder={t('createTenantDialog.ownerNamePlaceholder')}
-                className={isRTL ? 'text-right' : 'text-left'}
-                required
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="ownerName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('createTenantDialog.ownerNameLabel')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={t('createTenantDialog.ownerNamePlaceholder')}
+                        className={isRTL ? 'text-right' : 'text-left'}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="ownerEmail"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('createTenantDialog.ownerEmailLabel')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="owner@restaurant.com"
+                        className="text-left"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="owner-email">{t('createTenantDialog.ownerEmailLabel')}</Label>
-              <Input
-                id="owner-email"
-                type="email"
-                value={formData.ownerEmail}
-                onChange={(e) => setFormData(prev => ({ ...prev, ownerEmail: e.target.value }))}
-                placeholder="owner@restaurant.com"
-                className="text-left"
-                required
-              />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('createTenantDialog.passwordLabel')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      className={isRTL ? 'text-right' : 'text-left'}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="subscriptionPlan"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('createTenantDialog.subscriptionPlanLabel')}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    dir={isRTL ? 'rtl' : 'ltr'}
+                  >
+                    <FormControl>
+                      <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="basic">{t('plans.basic')}</SelectItem>
+                      <SelectItem value="premium">{t('plans.premium')}</SelectItem>
+                      <SelectItem value="enterprise">{t('plans.enterprise')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('createTenantDialog.phoneLabel')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="+963 xxx xxx xxx"
+                      className="text-left"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('createTenantDialog.addressLabel')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t('createTenantDialog.addressPlaceholder')}
+                      className={isRTL ? 'text-right' : 'text-left'}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+                variant="hero"
+              >
+                {form.formState.isSubmitting ? t('common.loading') : t('createTenantDialog.submitButton')}
+              </Button>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">{t('createTenantDialog.passwordLabel')}</Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-              placeholder="••••••••"
-              className={isRTL ? 'text-right' : 'text-left'}
-              minLength={6}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="subscription-plan">{t('createTenantDialog.subscriptionPlanLabel')}</Label>
-            <Select 
-              value={formData.subscriptionPlan} 
-              onValueChange={(value: 'basic' | 'premium' | 'enterprise') => 
-                setFormData(prev => ({ ...prev, subscriptionPlan: value }))
-              }
-              dir={isRTL ? 'rtl' : 'ltr'}
-            >
-              <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="basic">{t('plans.basic')}</SelectItem>
-                <SelectItem value="premium">{t('plans.premium')}</SelectItem>
-                <SelectItem value="enterprise">{t('plans.enterprise')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phone">{t('createTenantDialog.phoneLabel')}</Label>
-            <Input
-              id="phone"
-              value={formData.phoneNumber}
-              onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-              placeholder="+963 xxx xxx xxx"
-              className="text-left"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="address">{t('createTenantDialog.addressLabel')}</Label>
-            <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-              placeholder={t('createTenantDialog.addressPlaceholder')}
-              className={isRTL ? 'text-right' : 'text-left'}
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={loading}
-              variant="hero"
-            >
-              {loading ? t('common.loading') : t('createTenantDialog.submitButton')}
-            </Button>
-          </div>
-        </form>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
+    <AlertDialog open={showUnsavedChangesDialog} onOpenChange={setShowUnsavedChangesDialog}>
+      <AlertDialogContent dir={isRTL ? 'rtl' : 'ltr'}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('common.unsavedChanges')}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t('common.unsavedChangesDescription')}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t('common.stay')}</AlertDialogCancel>
+          <AlertDialogAction onClick={() => onOpenChange(false)}>
+            {t('common.leave')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 };
 

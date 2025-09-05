@@ -13,6 +13,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -27,7 +37,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Image, Upload, X } from "lucide-react";
+import { Plus, Edit2, Image, Upload, X, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -96,6 +106,9 @@ const MenuItemManager = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<MenuItem | null>(null);
+  const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   
@@ -114,6 +127,7 @@ const MenuItemManager = ({
     setSelectedCategory('');
     setImageFile(null);
     setImagePreview('');
+    setIsDirty(false);
   };
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,6 +147,44 @@ const MenuItemManager = ({
           variant: "destructive",
         });
       }
+    }
+  };
+
+  const handleDeleteItem = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('menu_items')
+        .delete()
+        .eq('id', itemToDelete.id);
+
+      if (error) throw error;
+
+      // Also delete the image from storage if it exists
+      if (itemToDelete.image_url) {
+        const fileName = itemToDelete.image_url.split('/').pop();
+        if (fileName) {
+          await supabase.storage.from('menu-images').remove([fileName]);
+        }
+      }
+
+      const updatedItems = menuItems.filter(item => item.id !== itemToDelete.id);
+      onMenuItemsChange(updatedItems);
+
+      toast({
+        title: "تم بنجاح",
+        description: `تم حذف صنف "${itemToDelete.name}"`,
+      });
+
+      setItemToDelete(null);
+    } catch (error) {
+      console.error('Error deleting menu item:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ في حذف الصنف",
+        variant: "destructive",
+      });
     }
   };
 
@@ -335,13 +387,28 @@ const MenuItemManager = ({
     );
   }
 
+  const handleAddDialogOpenChange = (isOpen: boolean) => {
+    if (!isOpen && isDirty) {
+      setShowUnsavedChangesDialog(true);
+    } else {
+      setIsAddDialogOpen(isOpen);
+      if (!isOpen) resetForm();
+    }
+  };
+
+  const handleEditDialogOpenChange = (isOpen: boolean) => {
+    if (!isOpen && isDirty) {
+      setShowUnsavedChangesDialog(true);
+    } else {
+      setEditingItem(isOpen ? editingItem : null);
+      if (!isOpen) resetForm();
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Add Item Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-        setIsAddDialogOpen(open);
-        if (!open) resetForm();
-      }}>
+      <Dialog open={isAddDialogOpen} onOpenChange={handleAddDialogOpenChange}>
         <DialogTrigger asChild>
           <Button className="w-full">
             <Plus className="h-4 w-4 ml-2" />
@@ -363,7 +430,7 @@ const MenuItemManager = ({
                   id="item-name"
                   placeholder="مثال: شيش طاووق"
                   value={itemName}
-                  onChange={(e) => setItemName(e.target.value)}
+                  onChange={(e) => { setItemName(e.target.value); setIsDirty(true); }}
                   dir="rtl"
                 />
               </div>
@@ -374,7 +441,7 @@ const MenuItemManager = ({
                   type="number"
                   placeholder="50000"
                   value={itemPrice}
-                  onChange={(e) => setItemPrice(e.target.value)}
+                  onChange={(e) => { setItemPrice(e.target.value); setIsDirty(true); }}
                   dir="rtl"
                 />
               </div>
@@ -382,7 +449,7 @@ const MenuItemManager = ({
             
             <div className="space-y-2">
               <Label htmlFor="item-category">الفئة *</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory} dir="rtl">
+              <Select value={selectedCategory} onValueChange={(value) => { setSelectedCategory(value); setIsDirty(true); }} dir="rtl">
                 <SelectTrigger>
                   <SelectValue placeholder="اختر فئة" />
                 </SelectTrigger>
@@ -402,7 +469,7 @@ const MenuItemManager = ({
                 id="item-description"
                 placeholder="وصف مختصر للصنف..."
                 value={itemDescription}
-                onChange={(e) => setItemDescription(e.target.value)}
+                onChange={(e) => { setItemDescription(e.target.value); setIsDirty(true); }}
                 dir="rtl"
               />
             </div>
@@ -415,7 +482,7 @@ const MenuItemManager = ({
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  onChange={handleImageSelect}
+                  onChange={(e) => { handleImageSelect(e); setIsDirty(true); }}
                   className="hidden"
                 />
                 <Button
@@ -471,12 +538,7 @@ const MenuItemManager = ({
       </Dialog>
 
       {/* Edit Item Dialog */}
-      <Dialog open={!!editingItem} onOpenChange={(open) => {
-        if (!open) {
-          setEditingItem(null);
-          resetForm();
-        }
-      }}>
+      <Dialog open={!!editingItem} onOpenChange={handleEditDialogOpenChange}>
         <DialogContent dir="rtl" className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>تعديل الصنف</DialogTitle>
@@ -491,7 +553,7 @@ const MenuItemManager = ({
                 <Input
                   id="edit-item-name"
                   value={itemName}
-                  onChange={(e) => setItemName(e.target.value)}
+                  onChange={(e) => { setItemName(e.target.value); setIsDirty(true); }}
                   dir="rtl"
                 />
               </div>
@@ -501,7 +563,7 @@ const MenuItemManager = ({
                   id="edit-item-price"
                   type="number"
                   value={itemPrice}
-                  onChange={(e) => setItemPrice(e.target.value)}
+                  onChange={(e) => { setItemPrice(e.target.value); setIsDirty(true); }}
                   dir="rtl"
                 />
               </div>
@@ -512,7 +574,7 @@ const MenuItemManager = ({
               <Textarea
                 id="edit-item-description"
                 value={itemDescription}
-                onChange={(e) => setItemDescription(e.target.value)}
+                onChange={(e) => { setItemDescription(e.target.value); setIsDirty(true); }}
                 dir="rtl"
               />
             </div>
@@ -524,7 +586,7 @@ const MenuItemManager = ({
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={handleImageSelect}
+                  onChange={(e) => { handleImageSelect(e); setIsDirty(true); }}
                   className="hidden"
                   ref={fileInputRef}
                 />
@@ -649,10 +711,19 @@ const MenuItemManager = ({
                           setItemName(item.name);
                           setItemDescription(item.description || '');
                           setItemPrice(item.price.toString());
+                          setImagePreview(item.image_url || '');
                         }}
                       >
                         <Edit2 className="h-4 w-4 ml-1" />
                         تعديل
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setItemToDelete(item)}
+                      >
+                        <Trash2 className="h-4 w-4 ml-1" />
+                        حذف
                       </Button>
                     </div>
                   </div>
@@ -662,6 +733,44 @@ const MenuItemManager = ({
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل تريد بالتأكيد حذف صنف "{itemToDelete?.name}"؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteItem}>
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showUnsavedChangesDialog} onOpenChange={setShowUnsavedChangesDialog}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              لديك تغييرات غير محفوظة. هل تريد بالتأكيد المغادرة؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>البقاء</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setIsAddDialogOpen(false);
+              setEditingItem(null);
+              resetForm();
+            }}>
+              المغادرة
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
