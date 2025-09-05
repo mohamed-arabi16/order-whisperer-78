@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Minus, ShoppingCart } from 'lucide-react';
 import { generateWhatsAppMessage } from '@/lib/whatsapp'; // WhatsApp integration
 import { useTranslation } from '@/hooks/useTranslation';
@@ -296,80 +297,89 @@ const PublicMenu = () => {
         </div>
 
         {/* Menu Categories and Items */}
-        <div className="space-y-8">
-          {categories.map(category => (
-            <section key={category.id} className="space-y-4">
-              <h2 className="text-lg font-semibold text-foreground border-b border-border pb-2">
-                {category.name}
-              </h2>
-              <div className="grid gap-4">
-                {getItemsForCategory(category.id).map(item => (
-                  <Card key={item.id} className="overflow-hidden">
-                    <CardContent className="p-4">
-                      <div className="flex gap-4">
-                        {item.image_url && (
-                          <img
-                            src={item.image_url}
-                            alt={t('publicMenu.menuItemImage')}
-                            className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
-                          />
+        <div className="md:grid md:grid-cols-4 md:gap-8">
+          <aside className="md:col-span-1 md:sticky md:top-[104px] h-fit">
+            <h2 className="text-lg font-semibold mb-4 hidden md:block">{t('publicMenu.categories')}</h2>
+            <Tabs defaultValue={categories[0]?.id} orientation="vertical" className="w-full">
+              <TabsList className="md:flex-col md:items-start md:h-auto w-full justify-start overflow-x-auto p-2 h-auto bg-transparent">
+                {categories.map(category => (
+                  <TabsTrigger key={category.id} value={category.id} className="flex-shrink-0 md:w-full md:justify-start">
+                    {category.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </aside>
+          <div className="md:col-span-3">
+            {categories.map(category => (
+              <section key={category.id} id={`category-${category.id}`} className="space-y-4 mb-8">
+                 <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2">
+                    {category.name}
+                  </h2>
+                <div className="grid gap-4 mt-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {getItemsForCategory(category.id).map(item => (
+                    <Card key={item.id} className="overflow-hidden shadow-card gradient-card flex flex-col">
+                      {item.image_url && (
+                        <img
+                          src={item.image_url}
+                          alt={t('publicMenu.menuItemImage')}
+                          className="w-full h-40 object-cover"
+                        />
+                      )}
+                      <CardContent className="p-4 flex flex-col flex-grow">
+                        <div className="flex-grow">
+                          <h3 className="font-medium text-foreground truncate">{item.name}</h3>
+                          {item.description && (
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                              {item.description}
+                            </p>
+                          )}
+                           <p className="text-sm font-semibold text-primary mt-2">
+                              {formatPrice(item.price)}
+                            </p>
+                        </div>
+
+                        {!item.is_available && (
+                          <Badge variant="secondary" className="text-xs mt-2 self-start">
+                            {t('common.unavailable')}
+                          </Badge>
                         )}
-                        <div className="flex-grow min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-grow">
-                              <h3 className="font-medium text-foreground truncate">{item.name}</h3>
-                              {item.description && (
-                                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                                  {item.description}
-                                </p>
-                              )}
-                              <p className="text-sm font-semibold text-primary mt-2">
-                                {formatPrice(item.price)}
-                              </p>
-                            </div>
-                            {!item.is_available && (
-                              <Badge variant="secondary" className="text-xs">
-                                {t('common.unavailable')}
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          {item.is_available && (
-                            <div className="flex items-center justify-between mt-3">
-                              <div className="flex items-center gap-2">
-                                {getItemQuantity(item.id) > 0 && (
+
+                        {item.is_available && (
+                          <div className="flex items-center justify-end mt-4">
+                            <div className="flex items-center gap-2">
+                              {getItemQuantity(item.id) > 0 ? (
+                                <>
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     onClick={() => removeFromCart(item.id)}
-                                    className="h-8 w-8 p-0"
+                                    className="h-9 w-9 p-0 rounded-full"
                                   >
-                                    <Minus size={14} />
+                                    <Minus size={16} />
                                   </Button>
-                                )}
-                                {getItemQuantity(item.id) > 0 && (
-                                  <span className="text-sm font-medium min-w-[2rem] text-center">
+                                  <span className="text-base font-bold min-w-[2rem] text-center">
                                     {getItemQuantity(item.id)}
                                   </span>
-                                )}
-                                <Button
-                                  size="sm"
-                                  onClick={() => addToCart(item)}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <Plus size={14} />
-                                </Button>
-                              </div>
+                                </>
+                              ) : null}
+                              <Button
+                                size="sm"
+                                onClick={() => addToCart(item)}
+                                className="h-9 w-9 p-0 rounded-full"
+                              >
+                                <Plus size={16} />
+                              </Button>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </section>
-          ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
         </div>
       </main>
 
