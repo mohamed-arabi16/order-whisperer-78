@@ -373,6 +373,15 @@
       "description": "Interface in Arabic and English"
     }
   },
+  "menuDemo": {
+    "title": "Digital Menu Preview",
+    "subtitle": "See how your restaurant's digital menu will look to customers",
+    "cartTitle": "Your Order",
+    "cartEmpty": "Your cart is empty",
+    "total": "Total",
+    "whatsappButton": "Send Order via WhatsApp",
+    "currency": "LBP"
+  },
   "cta": {
     "title": "Get Started with Digital Restaurant Platform",
     "subtitle": "Comprehensive platform for managing digital restaurant menus with direct WhatsApp integration for orders",
