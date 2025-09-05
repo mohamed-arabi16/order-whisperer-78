@@ -1,0 +1,191 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "create": "Create",
+    "update": "Update",
+    "search": "Search",
+    "close": "Close",
+    "open": "Open",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "price": "Price",
+    "name": "Name",
+    "description": "Description",
+    "image": "Image",
+    "category": "Category",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "total": "Total",
+    "currency": "LBP"
+  },
+  "header": {
+    "brand": "RestaurantOS",
+    "features": "Features",
+    "pricing": "Pricing",
+    "demo": "Demo",
+    "contact": "Contact",
+    "signIn": "Sign In",
+    "getStarted": "Get Started",
+    "dashboard": "Dashboard",
+    "signOut": "Sign Out"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full Name",
+    "signingIn": "Signing in...",
+    "signingUp": "Signing up...",
+    "welcomeBack": "Welcome back",
+    "createAccount": "Create a new account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?"
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "superAdmin": "Super Admin",
+    "restaurantOwner": "Restaurant Owner",
+    "setupInProgress": "Setting up dashboard..."
+  },
+  "superAdmin": {
+    "title": "Super Admin Dashboard",
+    "tenantsManagement": "Restaurant Management",
+    "totalTenants": "Total Restaurants",
+    "activeTenants": "Active Restaurants",
+    "recentTenants": "Recent Restaurants",
+    "createTenant": "Create New Restaurant",
+    "tenantName": "Restaurant Name",
+    "ownerEmail": "Owner Email",
+    "slug": "Slug",
+    "phoneNumber": "Phone Number",
+    "creating": "Creating...",
+    "tenantCreated": "Restaurant created successfully"
+  },
+  "restaurant": {
+    "dashboard": "Restaurant Dashboard",
+    "menuManagement": "Menu Management",
+    "branding": "Branding",
+    "qrCode": "QR Code",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "menuItems": "Menu Items",
+    "categories": "Categories",
+    "orders": "Orders",
+    "quickActions": "Quick Actions",
+    "addMenuItem": "Add New Item",
+    "addCategory": "Add New Category",
+    "viewMenu": "View Menu",
+    "generateQR": "Generate QR"
+  },
+  "menu": {
+    "management": "Menu Management",
+    "categories": "Categories",
+    "items": "Items",
+    "preview": "Preview",
+    "categoryName": "Category Name",
+    "addCategory": "Add Category",
+    "editCategory": "Edit Category",
+    "deleteCategory": "Delete Category",
+    "categoryDeleted": "Category deleted",
+    "categoryCreated": "Category created",
+    "categoryUpdated": "Category updated",
+    "itemName": "Item Name",
+    "itemDescription": "Item Description",
+    "itemPrice": "Item Price",
+    "addItem": "Add Item",
+    "editItem": "Edit Item",
+    "deleteItem": "Delete Item",
+    "itemDeleted": "Item deleted",
+    "itemCreated": "Item created",
+    "itemUpdated": "Item updated",
+    "uploadImage": "Upload Image",
+    "noImage": "No Image",
+    "toggleAvailability": "Toggle Availability",
+    "menuPreview": "Menu Preview",
+    "noCategories": "No categories found",
+    "noItems": "No items found",
+    "createFirstCategory": "Create your first category"
+  },
+  "publicMenu": {
+    "orderType": "Order Type",
+    "delivery": "Delivery",
+    "pickup": "Pickup",
+    "addToCart": "Add to Cart",
+    "removeFromCart": "Remove from Cart",
+    "cart": "Cart",
+    "sendOrder": "Send Order via WhatsApp",
+    "emptyCart": "Cart is empty",
+    "itemsInCart": "items in cart",
+    "orderSummary": "Order Summary",
+    "restaurantNotFound": "Restaurant not found"
+  },
+  "branding": {
+    "title": "Branding",
+    "uploadLogo": "Upload Logo",
+    "primaryColor": "Primary Color",
+    "secondaryColor": "Secondary Color",
+    "restaurantName": "Restaurant Name",
+    "preview": "Preview",
+    "save": "Save Changes",
+    "saved": "Changes saved"
+  },
+  "qr": {
+    "title": "QR Code",
+    "generate": "Generate QR Code",
+    "download": "Download",
+    "preview": "Preview",
+    "menuUrl": "Menu URL",
+    "print": "Print"
+  },
+  "hero": {
+    "title": "Digital Menu Platform for Restaurants",
+    "subtitle": "Transform your restaurant into a complete digital experience with smart menus and WhatsApp orders",
+    "getStarted": "Get Started",
+    "watchDemo": "Watch Demo"
+  },
+  "features": {
+    "title": "Platform Features",
+    "subtitle": "Everything you need to manage your restaurant digitally",
+    "digitalMenu": {
+      "title": "Smart Digital Menus",
+      "description": "Create beautiful interactive menus with images, descriptions, and prices"
+    },
+    "whatsappOrders": {
+      "title": "Direct WhatsApp Orders",
+      "description": "Receive orders directly via WhatsApp without complex applications"
+    },
+    "qrCode": {
+      "title": "Table QR Codes",
+      "description": "Custom QR codes for each table for easy menu access"
+    },
+    "realTimeUpdates": {
+      "title": "Real-time Updates",
+      "description": "Update menus and prices in real-time"
+    },
+    "analytics": {
+      "title": "Detailed Analytics",
+      "description": "Track orders and most requested items"
+    },
+    "multiLanguage": {
+      "title": "Multi-language Support",
+      "description": "Interface in Arabic and English"
+    }
+  },
+  "cta": {
+    "title": "Get Started with Digital Restaurant Platform",
+    "subtitle": "Comprehensive platform for managing digital restaurant menus with direct WhatsApp integration for orders",
+    "restaurantLogin": "Restaurant Login",
+    "dashboard": "Dashboard"
+  }
+}

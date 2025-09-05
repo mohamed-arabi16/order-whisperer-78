@@ -1,0 +1,191 @@
+{
+  "common": {
+    "loading": "جاري التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "create": "إنشاء",
+    "update": "تحديث",
+    "search": "بحث",
+    "close": "إغلاق",
+    "open": "فتح",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "submit": "إرسال",
+    "confirm": "تأكيد",
+    "yes": "نعم",
+    "no": "لا",
+    "price": "السعر",
+    "name": "الاسم",
+    "description": "الوصف",
+    "image": "الصورة",
+    "category": "الفئة",
+    "available": "متوفر",
+    "unavailable": "غير متوفر",
+    "total": "المجموع",
+    "currency": "ل.ل"
+  },
+  "header": {
+    "brand": "RestaurantOS",
+    "features": "المميزات",
+    "pricing": "الأسعار",
+    "demo": "عرض تجريبي",
+    "contact": "تواصل",
+    "signIn": "تسجيل الدخول",
+    "getStarted": "ابدأ الآن",
+    "dashboard": "لوحة التحكم",
+    "signOut": "تسجيل الخروج"
+  },
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "fullName": "الاسم الكامل",
+    "signingIn": "جاري تسجيل الدخول...",
+    "signingUp": "جاري إنشاء الحساب...",
+    "welcomeBack": "مرحباً بعودتك",
+    "createAccount": "إنشاء حساب جديد",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "dontHaveAccount": "ليس لديك حساب؟"
+  },
+  "dashboard": {
+    "welcome": "مرحباً",
+    "superAdmin": "المدير العام",
+    "restaurantOwner": "مالك المطعم",
+    "setupInProgress": "جاري إعداد لوحة التحكم..."
+  },
+  "superAdmin": {
+    "title": "لوحة تحكم المدير العام",
+    "tenantsManagement": "إدارة المطاعم",
+    "totalTenants": "إجمالي المطاعم",
+    "activeTenants": "المطاعم النشطة",
+    "recentTenants": "المطاعم الحديثة",
+    "createTenant": "إنشاء مطعم جديد",
+    "tenantName": "اسم المطعم",
+    "ownerEmail": "بريد المالك الإلكتروني",
+    "slug": "الرمز المختصر",
+    "phoneNumber": "رقم الهاتف",
+    "creating": "جاري الإنشاء...",
+    "tenantCreated": "تم إنشاء المطعم بنجاح"
+  },
+  "restaurant": {
+    "dashboard": "لوحة تحكم مطعم",
+    "menuManagement": "إدارة القائمة",
+    "branding": "العلامة التجارية", 
+    "qrCode": "رمز QR",
+    "analytics": "التحليلات",
+    "settings": "الإعدادات",
+    "menuItems": "عناصر القائمة",
+    "categories": "الفئات",
+    "orders": "الطلبات",
+    "quickActions": "إجراءات سريعة",
+    "addMenuItem": "إضافة عنصر جديد",
+    "addCategory": "إضافة فئة جديدة",
+    "viewMenu": "عرض القائمة",
+    "generateQR": "إنشاء رمز QR"
+  },
+  "menu": {
+    "management": "إدارة القائمة",
+    "categories": "الفئات",
+    "items": "العناصر",
+    "preview": "معاينة",
+    "categoryName": "اسم الفئة",
+    "addCategory": "إضافة فئة",
+    "editCategory": "تعديل الفئة",
+    "deleteCategory": "حذف الفئة",
+    "categoryDeleted": "تم حذف الفئة",
+    "categoryCreated": "تم إنشاء الفئة",
+    "categoryUpdated": "تم تحديث الفئة",
+    "itemName": "اسم العنصر",
+    "itemDescription": "وصف العنصر",
+    "itemPrice": "سعر العنصر",
+    "addItem": "إضافة عنصر",
+    "editItem": "تعديل العنصر",
+    "deleteItem": "حذف العنصر",
+    "itemDeleted": "تم حذف العنصر",
+    "itemCreated": "تم إنشاء العنصر",
+    "itemUpdated": "تم تحديث العنصر",
+    "uploadImage": "رفع صورة",
+    "noImage": "لا توجد صورة",
+    "toggleAvailability": "تغيير حالة التوفر",
+    "menuPreview": "معاينة القائمة",
+    "noCategories": "لا توجد فئات",
+    "noItems": "لا توجد عناصر",
+    "createFirstCategory": "إنشاء أول فئة"
+  },
+  "publicMenu": {
+    "orderType": "نوع الطلب",
+    "delivery": "توصيل",
+    "pickup": "استلام",
+    "addToCart": "إضافة للسلة",
+    "removeFromCart": "إزالة من السلة",
+    "cart": "السلة",
+    "sendOrder": "إرسال الطلب عبر واتساب",
+    "emptyCart": "السلة فارغة",
+    "itemsInCart": "عنصر في السلة",
+    "orderSummary": "ملخص الطلب",
+    "restaurantNotFound": "المطعم غير موجود"
+  },
+  "branding": {
+    "title": "العلامة التجارية",
+    "uploadLogo": "رفع الشعار",
+    "primaryColor": "اللون الأساسي",
+    "secondaryColor": "اللون الثانوي",
+    "restaurantName": "اسم المطعم",
+    "preview": "معاينة",
+    "save": "حفظ التغييرات",
+    "saved": "تم حفظ التغييرات"
+  },
+  "qr": {
+    "title": "رمز QR",
+    "generate": "إنشاء رمز QR",
+    "download": "تحميل",
+    "preview": "معاينة",
+    "menuUrl": "رابط القائمة",
+    "print": "طباعة"
+  },
+  "hero": {
+    "title": "منصة القوائم الرقمية للمطاعم",
+    "subtitle": "حول مطعمك إلى تجربة رقمية متكاملة مع القوائم الذكية والطلبات عبر واتساب",
+    "getStarted": "ابدأ الآن",
+    "watchDemo": "شاهد العرض التجريبي"
+  },
+  "features": {
+    "title": "مميزات المنصة",
+    "subtitle": "كل ما تحتاجه لإدارة مطعمك رقمياً",
+    "digitalMenu": {
+      "title": "قوائم رقمية ذكية",
+      "description": "إنشاء قوائم تفاعلية جميلة مع الصور والأوصاف والأسعار"
+    },
+    "whatsappOrders": {
+      "title": "طلبات واتساب مباشرة",
+      "description": "استقبال الطلبات مباشرة عبر واتساب دون تطبيقات معقدة"
+    },
+    "qrCode": {
+      "title": "رموز QR للطاولات",
+      "description": "رموز QR مخصصة لكل طاولة لتسهيل الوصول للقائمة"
+    },
+    "realTimeUpdates": {
+      "title": "تحديثات فورية",
+      "description": "تحديث القوائم والأسعار في الوقت الفعلي"
+    },
+    "analytics": {
+      "title": "تحليلات مفصلة",
+      "description": "تتبع الطلبات والأصناف الأكثر طلباً"
+    },
+    "multiLanguage": {
+      "title": "دعم متعدد اللغات",
+      "description": "واجهة باللغة العربية والإنجليزية"
+    }
+  },
+  "cta": {
+    "title": "ابدأ مع منصة المطاعم الرقمية",
+    "subtitle": "منصة شاملة لإدارة قوائم المطاعم الرقمية مع التكامل المباشر مع واتساب للطلبات",
+    "restaurantLogin": "تسجيل الدخول للمطاعم",
+    "dashboard": "لوحة التحكم"
+  }
+}
