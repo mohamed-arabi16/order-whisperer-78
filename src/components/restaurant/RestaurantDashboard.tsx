@@ -154,7 +154,11 @@ const RestaurantDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline">
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={() => window.location.href = '/menu-management'}
+              >
                 بناء القائمة
               </Button>
             </CardContent>
@@ -169,7 +173,11 @@ const RestaurantDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline">
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={() => window.location.href = '/branding'}
+              >
                 تخصيص التصميم
               </Button>
             </CardContent>
@@ -184,7 +192,11 @@ const RestaurantDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline">
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={() => window.location.href = '/qr-code'}
+              >
                 إنشاء رمز QR
               </Button>
             </CardContent>
@@ -239,7 +251,11 @@ const RestaurantDashboard = () => {
               </div>
             </div>
             <div className="mt-6">
-              <Button variant="hero" className="w-full">
+              <Button 
+                variant="hero" 
+                className="w-full"
+                onClick={() => window.location.href = '/menu-management'}
+              >
                 ابدأ بناء القائمة الآن
               </Button>
             </div>
