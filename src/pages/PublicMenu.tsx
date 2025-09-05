@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Minus, ShoppingCart } from 'lucide-react';
-import { formatWhatsAppMessage } from '@/lib/whatsapp';
+import { generateWhatsAppMessage } from '@/lib/whatsapp';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useToast } from '@/hooks/use-toast';
 
@@ -201,12 +201,11 @@ const PublicMenu = () => {
       return;
     }
 
-    const message = formatWhatsAppMessage({
+    const message = generateWhatsAppMessage({
       restaurantName: tenant.name,
       orderType: orderType === 'delivery' ? t('publicMenu.delivery') : t('publicMenu.pickup'),
       items: cart,
-      total: getTotalPrice(),
-      currency: t('common.currency')
+      totalPrice: getTotalPrice()
     });
 
     const whatsappUrl = `https://wa.me/${tenant.phone_number.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
