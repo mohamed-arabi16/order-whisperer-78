@@ -1,11 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, ReactNode } from "react";
 
+/**
+ * Props for the AnimatedSection component.
+ */
 interface AnimatedSectionProps {
-  children: React.ReactNode;
+  /**
+   * The content to be rendered within the section.
+   */
+  children: ReactNode;
+  /**
+   * Optional CSS class name to be applied to the section.
+   */
   className?: string;
 }
 
-const AnimatedSection = ({ children, className }: AnimatedSectionProps) => {
+/**
+ * A component that fades in its children when it becomes visible in the viewport.
+ * It uses the IntersectionObserver API to detect when the component is in view.
+ *
+ * @param {AnimatedSectionProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered animated section.
+ */
+const AnimatedSection = ({
+  children,
+  className,
+}: AnimatedSectionProps): JSX.Element => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +57,7 @@ const AnimatedSection = ({ children, className }: AnimatedSectionProps) => {
     <div
       ref={sectionRef}
       className={`${className} transition-opacity duration-1000 ease-in ${
-        isVisible ? 'opacity-100' : 'opacity-0'
+        isVisible ? "opacity-100" : "opacity-0"
       }`}
     >
       {children}

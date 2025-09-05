@@ -3,7 +3,13 @@ import { ArrowRight, Play } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import heroImage from "@/assets/hero-restaurant.jpg";
 
-const Hero = () => {
+/**
+ * The main hero section of the landing page.
+ * It includes a title, subtitle, call-to-action buttons, and a hero image.
+ *
+ * @returns {JSX.Element} The rendered hero section.
+ */
+const Hero = (): JSX.Element => {
   const { t, isRTL } = useTranslation();
 
   return (

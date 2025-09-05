@@ -1,73 +1,89 @@
-# Welcome to your Lovable project
+# Digital Menu & WhatsApp Ordering System
 
-## Project info
+This project is a comprehensive digital menu and ordering system designed for restaurants. It allows restaurant owners to manage their menu, and customers to view the menu via a QR code and place orders through WhatsApp. The system also includes a super admin dashboard for managing multiple restaurant tenants.
 
-**URL**: https://lovable.dev/projects/8e68783d-92b5-41a9-b6e0-94f19b6414bf
+## Key Features
 
-## How can I edit this code?
+- **Multi-Tenant Architecture**: Supports multiple restaurants, each with its own menu and branding.
+- **Role-Based Access Control**: Differentiates between Super Admins and Restaurant Owners.
+- **Menu Management**: Easy creation and management of categories and menu items.
+- **Customizable Branding**: Restaurants can upload their logo and choose a primary color for their menu.
+- **QR Code Generation**: Automatically generates a unique QR code for each restaurant's menu.
+- **WhatsApp Ordering**: Seamlessly integrates with WhatsApp for placing orders.
+- **Localization**: Supports English and Arabic, with an easily extensible translation system.
+- **Responsive Design**: The public menu and dashboards are designed to work on all devices.
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **Frontend**: React, Vite, TypeScript
+- **UI Framework**: shadcn-ui
+- **Styling**: Tailwind CSS
+- **Backend & Database**: Supabase
+- **Serverless Functions**: Deno (for Supabase Edge Functions)
+- **State Management**: React Context API
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8e68783d-92b5-41a9-b6e0-94f19b6414bf) and start prompting.
+## Project Structure
 
-Changes made via Lovable will be committed automatically to this repo.
+The repository is organized into the following main directories:
 
-**Use your preferred IDE**
+- **`src/`**: Contains all the frontend source code.
+  - **`components/`**: Reusable React components.
+    - **`admin/`**: Components for the Super Admin dashboard.
+    - **`branding/`**: Components for restaurant branding customization.
+    - **`menu/`**: Components for menu management.
+    - **`qr/`**: Components for QR code generation.
+    - **`restaurant/`**: Components for the Restaurant Owner dashboard.
+    - **`ui/`**: UI components from shadcn-ui.
+  - **`hooks/`**: Custom React hooks for authentication, translation, etc.
+  - **`integrations/`**: Supabase client and generated types.
+  - **`pages/`**: Top-level page components for each route.
+- **`supabase/`**: Supabase configuration and serverless functions.
+  - **`functions/`**: Edge functions for backend logic (e.g., creating a new tenant).
+  - **`migrations/`**: Database migration scripts.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Getting Started
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
 
-Follow these steps:
+- Node.js and npm (or a compatible package manager)
+- A Supabase account
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Setup
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1.  **Clone the repository:**
+    ```sh
+    git clone <YOUR_GIT_URL>
+    cd <YOUR_PROJECT_NAME>
+    ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+2.  **Install dependencies:**
+    ```sh
+    npm install
+    ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+3.  **Set up Supabase:**
+    - Create a new project on [Supabase](https://supabase.com/).
+    - Navigate to the `SQL Editor` and run the scripts from the `supabase/migrations/` directory to set up your database schema.
+    - Go to `Project Settings` > `API` to find your project URL and `anon` key.
 
-**Edit a file directly in GitHub**
+4.  **Configure environment variables:**
+    - Create a `.env` file in the root of the project.
+    - Add your Supabase credentials to the `.env` file:
+      ```env
+      VITE_SUPABASE_URL=YOUR_SUPABASE_URL
+      VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+      ```
+    - **Note**: The `VITE_` prefix is required for Vite to expose these variables to the frontend.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+5.  **Run the development server:**
+    ```sh
+    npm run dev
+    ```
 
-**Use GitHub Codespaces**
+The application should now be running on `http://localhost:5173`.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Usage
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/8e68783d-92b5-41a9-b6e0-94f19b6414bf) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- **Super Admin**: The first user created can be promoted to `super_admin` directly in the Supabase `profiles` table. This user can then access the super admin dashboard to create and manage new restaurant tenants.
+- **Restaurant Owner**: When a new tenant is created, a restaurant owner account is also created. This user can log in to manage their menu, customize their branding, and generate a QR code for their menu.
+- **Public Menu**: The public menu for each restaurant is accessible at `/menu/:slug`, where `:slug` is the unique slug generated for the restaurant.

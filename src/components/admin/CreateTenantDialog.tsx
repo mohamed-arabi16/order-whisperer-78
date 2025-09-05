@@ -1,20 +1,56 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 
+/**
+ * Props for the CreateTenantDialog component.
+ */
 interface CreateTenantDialogProps {
+  /**
+   * Whether the dialog is open.
+   */
   open: boolean;
+  /**
+   * Callback function to change the open state of the dialog.
+   * @param open - The new open state.
+   */
   onOpenChange: (open: boolean) => void;
+  /**
+   * Callback function to be called when a new tenant is created successfully.
+   */
   onTenantCreated: () => void;
 }
 
-const CreateTenantDialog = ({ open, onOpenChange, onTenantCreated }: CreateTenantDialogProps) => {
+/**
+ * A dialog component for creating a new tenant (restaurant).
+ * It includes a form to collect tenant information and calls a Supabase function to create the tenant.
+ *
+ * @param {CreateTenantDialogProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered dialog component.
+ */
+const CreateTenantDialog = ({
+  open,
+  onOpenChange,
+  onTenantCreated,
+}: CreateTenantDialogProps): JSX.Element => {
   const { t, isRTL } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
