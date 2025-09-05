@@ -2,7 +2,13 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Globe } from "lucide-react";
 
-const LanguageSwitcher = () => {
+/**
+ * A component that allows the user to switch the application's language.
+ * It toggles between English and Arabic.
+ *
+ * @returns {JSX.Element} The rendered language switcher button.
+ */
+const LanguageSwitcher = (): JSX.Element => {
   const { language, setLanguage, t } = useTranslation();
 
   const toggleLanguage = () => {

@@ -1,9 +1,20 @@
 import { useTranslation } from "@/hooks/useTranslation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Check } from "lucide-react";
 
-const Pricing = () => {
+/**
+ * A page component that displays the pricing plans for the service.
+ *
+ * @returns {JSX.Element} The rendered pricing page.
+ */
+const Pricing = (): JSX.Element => {
   const { t, isRTL } = useTranslation();
 
   const plans = [

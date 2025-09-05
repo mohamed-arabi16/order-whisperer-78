@@ -5,7 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const Contact = () => {
+/**
+ * A page component that displays a contact form.
+ * The form submission is currently a placeholder that logs data to the console.
+ *
+ * @returns {JSX.Element} The rendered contact page.
+ */
+const Contact = (): JSX.Element => {
   const { t, isRTL } = useTranslation();
 
   return (

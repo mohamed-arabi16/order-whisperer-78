@@ -1,15 +1,24 @@
-import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Upload, Palette, Save, Eye, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Upload, Palette, Save, Eye, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 
+/**
+ * Represents a tenant with branding information.
+ */
 interface Tenant {
   id: string;
   name: string;
@@ -17,7 +26,14 @@ interface Tenant {
   primary_color?: string;
 }
 
-const RestaurantBranding = () => {
+/**
+ * A component that allows a tenant to customize their restaurant's branding.
+ * This includes uploading a logo and selecting a primary color.
+ * It provides a live preview and saves the changes to the database.
+ *
+ * @returns {JSX.Element} The rendered restaurant branding component.
+ */
+const RestaurantBranding = (): JSX.Element => {
   const { profile } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();

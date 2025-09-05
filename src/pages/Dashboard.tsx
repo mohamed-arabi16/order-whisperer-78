@@ -1,9 +1,15 @@
-import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
-import SuperAdminDashboard from '@/components/admin/SuperAdminDashboard';
-import RestaurantDashboard from '@/components/restaurant/RestaurantDashboard';
+import { useAuth } from "@/hooks/useAuth";
+import { Navigate } from "react-router-dom";
+import SuperAdminDashboard from "@/components/admin/SuperAdminDashboard";
+import RestaurantDashboard from "@/components/restaurant/RestaurantDashboard";
 
-const Dashboard = () => {
+/**
+ * A page component that acts as a router for the dashboard.
+ * It displays the appropriate dashboard based on the user's role.
+ *
+ * @returns {JSX.Element} The rendered dashboard page.
+ */
+const Dashboard = (): JSX.Element => {
   const { user, profile, loading, isAdmin, isRestaurantOwner } = useAuth();
 
   if (loading) {

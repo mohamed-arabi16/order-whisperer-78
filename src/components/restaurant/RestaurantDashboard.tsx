@@ -1,13 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Building2, Menu, QrCode, Palette, Link, Copy } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Building2, Menu, QrCode, Palette, Link, Copy } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { useTranslation } from "@/hooks/useTranslation";
 
+/**
+ * Represents a tenant (restaurant) with its details.
+ */
 interface Tenant {
   id: string;
   name: string;
@@ -18,9 +28,13 @@ interface Tenant {
   address?: string;
 }
 
-import { useTranslation } from '@/hooks/useTranslation';
-
-const RestaurantDashboard = () => {
+/**
+ * The main dashboard for a restaurant owner.
+ * It displays restaurant information, quick actions, and a getting started guide.
+ *
+ * @returns {JSX.Element} The rendered restaurant dashboard component.
+ */
+const RestaurantDashboard = (): JSX.Element => {
   const { profile } = useAuth();
   const { t, isRTL } = useTranslation();
   const { toast } = useToast();

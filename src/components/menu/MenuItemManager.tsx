@@ -1,17 +1,39 @@
-import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit2, Image, Upload, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus, Edit2, Image, Upload, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
+/**
+ * Represents a menu category.
+ */
 interface Category {
   id: string;
   name: string;
@@ -19,6 +41,9 @@ interface Category {
   is_active: boolean;
 }
 
+/**
+ * Represents a menu item.
+ */
 interface MenuItem {
   id: string;
   name: string;
@@ -31,14 +56,42 @@ interface MenuItem {
   created_at: string;
 }
 
+/**
+ * Props for the MenuItemManager component.
+ */
 interface MenuItemManagerProps {
+  /**
+   * An array of category objects.
+   */
   categories: Category[];
+  /**
+   * An array of menu item objects.
+   */
   menuItems: MenuItem[];
+  /**
+   * The ID of the tenant.
+   */
   tenantId: string;
+  /**
+   * Callback function to be called when the menu items are updated.
+   * @param items - The updated array of menu items.
+   */
   onMenuItemsChange: (items: MenuItem[]) => void;
 }
 
-const MenuItemManager = ({ categories, menuItems, tenantId, onMenuItemsChange }: MenuItemManagerProps) => {
+/**
+ * A component for managing menu items within categories.
+ * It allows creating, editing, and toggling the availability of menu items, including image uploads.
+ *
+ * @param {MenuItemManagerProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered menu item manager component.
+ */
+const MenuItemManager = ({
+  categories,
+  menuItems,
+  tenantId,
+  onMenuItemsChange,
+}: MenuItemManagerProps): JSX.Element => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);

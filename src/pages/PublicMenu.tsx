@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Minus, ShoppingCart } from 'lucide-react';
-import { generateWhatsAppMessage } from '@/lib/whatsapp'; // WhatsApp integration
-import { useTranslation } from '@/hooks/useTranslation';
-import { useToast } from '@/hooks/use-toast';
+import { Plus, Minus, ShoppingCart } from "lucide-react";
+import { generateWhatsAppMessage } from "@/lib/whatsapp"; // WhatsApp integration
+import { useTranslation } from "@/hooks/useTranslation";
+import { useToast } from "@/hooks/use-toast";
 
+/**
+ * Represents a tenant (restaurant) with public-facing information.
+ */
 interface Tenant {
   id: string;
   name: string;
@@ -19,12 +22,18 @@ interface Tenant {
   primary_color: string | null;
 }
 
+/**
+ * Represents a menu category.
+ */
 interface Category {
   id: string;
   name: string;
   display_order: number;
 }
 
+/**
+ * Represents a menu item.
+ */
 interface MenuItem {
   id: string;
   name: string;
@@ -35,6 +44,9 @@ interface MenuItem {
   is_available: boolean;
 }
 
+/**
+ * Represents an item in the shopping cart.
+ */
 interface CartItem {
   id: string;
   name: string;
@@ -42,7 +54,13 @@ interface CartItem {
   quantity: number;
 }
 
-const PublicMenu = () => {
+/**
+ * A page component that displays a public-facing menu for a restaurant.
+ * It allows customers to browse the menu, add items to a cart, and send the order via WhatsApp.
+ *
+ * @returns {JSX.Element} The rendered public menu page.
+ */
+const PublicMenu = (): JSX.Element => {
   const { slug } = useParams();
   const { toast } = useToast();
   const { t, isRTL } = useTranslation();

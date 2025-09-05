@@ -1,13 +1,25 @@
-import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/hooks/useAuth';
+import { useState } from "react";
+import { Navigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/useAuth";
 
-const Auth = () => {
+/**
+ * A page component for user authentication.
+ * It provides a UI for signing up and signing in, with a tabbed interface to switch between forms.
+ *
+ * @returns {JSX.Element} The rendered authentication page.
+ */
+const Auth = (): JSX.Element => {
   const { user, signUp, signIn, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 

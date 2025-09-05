@@ -19,7 +19,13 @@ import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+/**
+ * The root component of the application.
+ * It sets up all the necessary providers and defines the application's routes.
+ *
+ * @returns {JSX.Element} The rendered application.
+ */
+const App = (): JSX.Element => (
   <QueryClientProvider client={queryClient}>
     <TranslationProvider>
       <AuthProvider>

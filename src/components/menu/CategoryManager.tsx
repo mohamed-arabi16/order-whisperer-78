@@ -1,16 +1,32 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit2, GripVertical, Menu } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus, Edit2, GripVertical, Menu } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 
+/**
+ * Represents a menu category.
+ */
 interface Category {
   id: string;
   name: string;
@@ -19,13 +35,37 @@ interface Category {
   created_at: string;
 }
 
+/**
+ * Props for the CategoryManager component.
+ */
 interface CategoryManagerProps {
+  /**
+   * An array of category objects.
+   */
   categories: Category[];
+  /**
+   * The ID of the tenant.
+   */
   tenantId: string;
+  /**
+   * Callback function to be called when the categories are updated.
+   * @param categories - The updated array of categories.
+   */
   onCategoriesChange: (categories: Category[]) => void;
 }
 
-const CategoryManager = ({ categories, tenantId, onCategoriesChange }: CategoryManagerProps) => {
+/**
+ * A component for managing menu categories.
+ * It allows creating, editing, and toggling the active status of categories.
+ *
+ * @param {CategoryManagerProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered category manager component.
+ */
+const CategoryManager = ({
+  categories,
+  tenantId,
+  onCategoriesChange,
+}: CategoryManagerProps): JSX.Element => {
   const { toast } = useToast();
   const { t, isRTL } = useTranslation();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);

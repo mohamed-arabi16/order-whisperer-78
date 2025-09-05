@@ -6,7 +6,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-const Header = () => {
+/**
+ * The main header for the application.
+ * It includes navigation links, language switcher, and authentication buttons.
+ * It also has a mobile-friendly responsive design.
+ *
+ * @returns {JSX.Element | null} The rendered header component, or null if on a public menu page.
+ */
+const Header = (): JSX.Element | null => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, isRTL } = useTranslation();
   const { user, signOut } = useAuth();

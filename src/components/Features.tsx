@@ -1,8 +1,21 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { MenuIcon, MessageCircle, QrCode, Clock, BarChart3, Globe } from "lucide-react";
+import {
+  MenuIcon,
+  MessageCircle,
+  QrCode,
+  Clock,
+  BarChart3,
+  Globe,
+} from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
-const Features = () => {
+/**
+ * A component that displays a list of features.
+ * It uses the useTranslation hook to support multiple languages.
+ *
+ * @returns {JSX.Element} The rendered features section.
+ */
+const Features = (): JSX.Element => {
   const { t, isRTL } = useTranslation();
 
   const features = [

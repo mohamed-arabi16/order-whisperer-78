@@ -1,16 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, ArrowRight, Menu, Package } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import CategoryManager from '@/components/menu/CategoryManager';
-import MenuItemManager from '@/components/menu/MenuItemManager';
-import MenuPreview from '@/components/menu/MenuPreview';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, ArrowRight, Menu, Package } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import CategoryManager from "@/components/menu/CategoryManager";
+import MenuItemManager from "@/components/menu/MenuItemManager";
+import MenuPreview from "@/components/menu/MenuPreview";
 
+/**
+ * Represents a menu category.
+ */
 interface Category {
   id: string;
   name: string;
@@ -19,6 +28,9 @@ interface Category {
   created_at: string;
 }
 
+/**
+ * Represents a menu item.
+ */
 interface MenuItem {
   id: string;
   name: string;
@@ -31,7 +43,13 @@ interface MenuItem {
   created_at: string;
 }
 
-const MenuManagement = () => {
+/**
+ * A page component for managing a restaurant's menu.
+ * It provides a tabbed interface for managing categories, items, and previewing the menu.
+ *
+ * @returns {JSX.Element} The rendered menu management page.
+ */
+const MenuManagement = (): JSX.Element => {
   const { profile } = useAuth();
   const { toast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);

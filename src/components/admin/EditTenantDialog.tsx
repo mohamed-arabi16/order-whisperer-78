@@ -1,13 +1,28 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 
+/**
+ * Represents a tenant object.
+ */
 interface Tenant {
   id: string;
   name: string;
@@ -16,14 +31,42 @@ interface Tenant {
   address: string | null;
 }
 
+/**
+ * Props for the EditTenantDialog component.
+ */
 interface EditTenantDialogProps {
+  /**
+   * Whether the dialog is open.
+   */
   open: boolean;
+  /**
+   * Callback function to change the open state of the dialog.
+   * @param open - The new open state.
+   */
   onOpenChange: (open: boolean) => void;
+  /**
+   * Callback function to be called when the tenant is updated successfully.
+   */
   onTenantUpdated: () => void;
+  /**
+   * The tenant object to be edited.
+   */
   tenant: Tenant | null;
 }
 
-const EditTenantDialog = ({ open, onOpenChange, onTenantUpdated, tenant }: EditTenantDialogProps) => {
+/**
+ * A dialog component for editing an existing tenant.
+ * It is pre-filled with the tenant's current data and allows for updates.
+ *
+ * @param {EditTenantDialogProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered dialog component.
+ */
+const EditTenantDialog = ({
+  open,
+  onOpenChange,
+  onTenantUpdated,
+  tenant,
+}: EditTenantDialogProps): JSX.Element => {
   const { t, isRTL } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({

@@ -1,15 +1,24 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Users, Building2, Settings } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import CreateTenantDialog from './CreateTenantDialog';
-import EditTenantDialog from './EditTenantDialog';
-import { useTranslation } from '@/hooks/useTranslation';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Users, Building2, Settings } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import CreateTenantDialog from "./CreateTenantDialog";
+import EditTenantDialog from "./EditTenantDialog";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useNavigate } from "react-router-dom";
 
+/**
+ * Represents a tenant with its associated owner information.
+ */
 interface Tenant {
   id: string;
   name: string;
@@ -25,7 +34,13 @@ interface Tenant {
   };
 }
 
-const SuperAdminDashboard = () => {
+/**
+ * The main dashboard for super administrators.
+ * It provides an overview of all tenants, statistics, and management functionalities.
+ *
+ * @returns {JSX.Element} The rendered super admin dashboard component.
+ */
+const SuperAdminDashboard = (): JSX.Element => {
   const { profile } = useAuth();
   const { t, isRTL } = useTranslation();
   const navigate = useNavigate();

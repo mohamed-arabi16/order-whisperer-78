@@ -1,26 +1,45 @@
-import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { QrCode, Download, Copy, ExternalLink, Printer } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { QrCode, Download, Copy, ExternalLink, Printer } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import QRCode from "qrcode";
+import { useTranslation } from "@/hooks/useTranslation";
 
+/**
+ * Represents a tenant with basic information for QR code generation.
+ */
 interface Tenant {
   id: string;
   name: string;
   slug: string;
 }
 
-import QRCode from 'qrcode';
-
-import { useTranslation } from '@/hooks/useTranslation';
-
-const QRCodeGenerator = () => {
+/**
+ * A component for generating and managing QR codes for a tenant's menu.
+ * It provides options to download, print, and customize the QR code.
+ *
+ * @returns {JSX.Element} The rendered QR code generator component.
+ */
+const QRCodeGenerator = (): JSX.Element => {
   const { profile } = useAuth();
   const { toast } = useToast();
   const { t, isRTL } = useTranslation();

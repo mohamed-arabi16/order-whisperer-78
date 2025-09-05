@@ -1,8 +1,17 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Smartphone, Eye } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Smartphone, Eye } from "lucide-react";
 
+/**
+ * Represents a menu category.
+ */
 interface Category {
   id: string;
   name: string;
@@ -10,6 +19,9 @@ interface Category {
   is_active: boolean;
 }
 
+/**
+ * Represents a menu item.
+ */
 interface MenuItem {
   id: string;
   name: string;
@@ -21,14 +33,33 @@ interface MenuItem {
   display_order: number;
 }
 
+/**
+ * Props for the MenuPreview component.
+ */
 interface MenuPreviewProps {
+  /**
+   * An array of category objects.
+   */
   categories: Category[];
+  /**
+   * An array of menu item objects.
+   */
   menuItems: MenuItem[];
 }
 
-const MenuPreview = ({ categories, menuItems }: MenuPreviewProps) => {
+/**
+ * A component that displays a preview of the public-facing menu.
+ * It simulates the appearance of the menu on a mobile device.
+ *
+ * @param {MenuPreviewProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered menu preview component.
+ */
+const MenuPreview = ({
+  categories,
+  menuItems,
+}: MenuPreviewProps): JSX.Element => {
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('ar-LB').format(price) + ' ل.ل';
+    return new Intl.NumberFormat("ar-LB").format(price) + " ل.ل";
   };
 
   const getItemsForCategory = (categoryId: string) => {

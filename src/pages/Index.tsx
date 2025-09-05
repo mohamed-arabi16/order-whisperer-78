@@ -4,7 +4,13 @@ import MenuDemo from "@/components/MenuDemo";
 import AnimatedSection from "@/components/AnimatedSection";
 import { useTranslation } from "@/hooks/useTranslation";
 
-const Index = () => {
+/**
+ * The main landing page of the application.
+ * It assembles several components to create the homepage layout.
+ *
+ * @returns {JSX.Element} The rendered index page.
+ */
+const Index = (): JSX.Element => {
   const { t, isRTL } = useTranslation();
 
   return (
