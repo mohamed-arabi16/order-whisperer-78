@@ -3,7 +3,7 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const Header = () => {
@@ -35,18 +35,18 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className={`hidden md:flex items-center ${isRTL ? 'space-x-reverse space-x-8' : 'space-x-8'}`}>
-          <a href="#features" className="text-muted-foreground hover:text-foreground transition-smooth">
+          <a href="/#features" className="text-muted-foreground hover:text-foreground transition-smooth">
             {t('header.features')}
           </a>
-          <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-smooth">
+          <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-smooth">
             {t('header.pricing')}
-          </a>
-          <a href="#demo" className="text-muted-foreground hover:text-foreground transition-smooth">
+          </Link>
+          <a href="/#demo" className="text-muted-foreground hover:text-foreground transition-smooth">
             {t('header.demo')}
           </a>
-          <a href="#contact" className="text-muted-foreground hover:text-foreground transition-smooth">
+          <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-smooth">
             {t('header.contact')}
-          </a>
+          </Link>
         </nav>
 
         <div className={`hidden md:flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
@@ -85,18 +85,18 @@ const Header = () => {
       {isMenuOpen && (
         <div className="absolute top-16 left-0 right-0 md:hidden bg-background border-b border-border shadow-lg">
           <nav className="container mx-auto px-4 py-4 space-y-4">
-            <a href="#features" className="block text-muted-foreground hover:text-foreground transition-smooth">
+            <a href="/#features" className="block text-muted-foreground hover:text-foreground transition-smooth" onClick={() => setIsMenuOpen(false)}>
               {t('header.features')}
             </a>
-            <a href="#pricing" className="block text-muted-foreground hover:text-foreground transition-smooth">
+            <Link to="/pricing" className="block text-muted-foreground hover:text-foreground transition-smooth" onClick={() => setIsMenuOpen(false)}>
               {t('header.pricing')}
-            </a>
-            <a href="#demo" className="block text-muted-foreground hover:text-foreground transition-smooth">
+            </Link>
+            <a href="/#demo" className="block text-muted-foreground hover:text-foreground transition-smooth" onClick={() => setIsMenuOpen(false)}>
               {t('header.demo')}
             </a>
-            <a href="#contact" className="block text-muted-foreground hover:text-foreground transition-smooth">
+            <Link to="/contact" className="block text-muted-foreground hover:text-foreground transition-smooth" onClick={() => setIsMenuOpen(false)}>
               {t('header.contact')}
-            </a>
+            </Link>
             <div className="pt-4 space-y-2">
               <LanguageSwitcher />
               {user ? (
