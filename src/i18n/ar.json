@@ -196,6 +196,7 @@
     "createFirstCategory": "إنشاء أول فئة"
   },
   "publicMenu": {
+    "categories": "الفئات",
     "orderType": "نوع الطلب",
     "delivery": "توصيل",
     "pickup": "استلام",

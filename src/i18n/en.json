@@ -196,6 +196,7 @@
     "createFirstCategory": "Create your first category"
   },
   "publicMenu": {
+    "categories": "Categories",
     "orderType": "Order Type",
     "delivery": "Delivery",
     "pickup": "Pickup",
