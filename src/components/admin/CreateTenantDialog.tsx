@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface CreateTenantDialogProps {
   open: boolean;
@@ -14,6 +15,7 @@ interface CreateTenantDialogProps {
 }
 
 const CreateTenantDialog = ({ open, onOpenChange, onTenantCreated }: CreateTenantDialogProps) => {
+  const { t, isRTL } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     restaurantName: '',
@@ -30,51 +32,15 @@ const CreateTenantDialog = ({ open, onOpenChange, onTenantCreated }: CreateTenan
     setLoading(true);
 
     try {
-      // Generate slug from restaurant name
-      const slug = formData.restaurantName
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, '')
-        .replace(/\s+/g, '-');
-
-      // Create user account for restaurant owner
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.ownerEmail,
-        password: formData.password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: formData.ownerName,
-          role: 'restaurant_owner'
-        }
+      const { data, error } = await supabase.functions.invoke('create-tenant', {
+        body: formData,
       });
 
-      if (authError) throw authError;
-
-      // Get the created profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', authData.user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Create tenant
-      const { error: tenantError } = await supabase
-        .from('tenants')
-        .insert({
-          name: formData.restaurantName,
-          slug: slug,
-          owner_id: profileData.id,
-          subscription_plan: formData.subscriptionPlan,
-          phone_number: formData.phoneNumber,
-          address: formData.address
-        });
-
-      if (tenantError) throw tenantError;
+      if (error) throw error;
 
       toast({
-        title: "تم إنشاء المطعم بنجاح",
-        description: `تم إنشاء حساب ${formData.restaurantName} وإرسال بيانات الدخول للمالك`
+        title: t('createTenantDialog.successTitle'),
+        description: t('createTenantDialog.successDescription', { restaurantName: formData.restaurantName })
       });
 
       // Reset form
@@ -91,10 +57,12 @@ const CreateTenantDialog = ({ open, onOpenChange, onTenantCreated }: CreateTenan
       onTenantCreated();
     } catch (error) {
       console.error('Error creating tenant:', error);
+      const errorMessage = error instanceof Error ? error.message : t('createTenantDialog.genericError');
+
       toast({
         variant: "destructive",
-        title: "خطأ في إنشاء المطعم",
-        description: "حدث خطأ أثناء إنشاء حساب المطعم"
+        title: t('createTenantDialog.errorTitle'),
+        description: errorMessage
       });
     } finally {
       setLoading(false);
@@ -103,40 +71,40 @@ const CreateTenantDialog = ({ open, onOpenChange, onTenantCreated }: CreateTenan
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" dir="rtl">
+      <DialogContent className="sm:max-w-md" dir={isRTL ? 'rtl' : 'ltr'}>
         <DialogHeader>
-          <DialogTitle>إضافة مطعم جديد</DialogTitle>
+          <DialogTitle>{t('createTenantDialog.title')}</DialogTitle>
           <DialogDescription>
-            إنشاء حساب مطعم جديد على المنصة مع تحديد خطة الاشتراك
+            {t('createTenantDialog.description')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="restaurant-name">اسم المطعم</Label>
+            <Label htmlFor="restaurant-name">{t('createTenantDialog.restaurantNameLabel')}</Label>
             <Input
               id="restaurant-name"
               value={formData.restaurantName}
               onChange={(e) => setFormData(prev => ({ ...prev, restaurantName: e.target.value }))}
-              placeholder="مثال: بوابة دمشق"
-              className="text-right"
+              placeholder={t('createTenantDialog.restaurantNamePlaceholder')}
+              className={isRTL ? 'text-right' : 'text-left'}
               required
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="owner-name">اسم المالك</Label>
+              <Label htmlFor="owner-name">{t('createTenantDialog.ownerNameLabel')}</Label>
               <Input
                 id="owner-name"
                 value={formData.ownerName}
                 onChange={(e) => setFormData(prev => ({ ...prev, ownerName: e.target.value }))}
-                placeholder="الاسم الكامل"
-                className="text-right"
+                placeholder={t('createTenantDialog.ownerNamePlaceholder')}
+                className={isRTL ? 'text-right' : 'text-left'}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="owner-email">البريد الإلكتروني</Label>
+              <Label htmlFor="owner-email">{t('createTenantDialog.ownerEmailLabel')}</Label>
               <Input
                 id="owner-email"
                 type="email"
@@ -150,40 +118,41 @@ const CreateTenantDialog = ({ open, onOpenChange, onTenantCreated }: CreateTenan
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">كلمة المرور الأولية</Label>
+            <Label htmlFor="password">{t('createTenantDialog.passwordLabel')}</Label>
             <Input
               id="password"
               type="password"
               value={formData.password}
               onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
               placeholder="••••••••"
-              className="text-right"
+              className={isRTL ? 'text-right' : 'text-left'}
               minLength={6}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="subscription-plan">خطة الاشتراك</Label>
+            <Label htmlFor="subscription-plan">{t('createTenantDialog.subscriptionPlanLabel')}</Label>
             <Select 
               value={formData.subscriptionPlan} 
               onValueChange={(value: 'basic' | 'premium' | 'enterprise') => 
                 setFormData(prev => ({ ...prev, subscriptionPlan: value }))
               }
+              dir={isRTL ? 'rtl' : 'ltr'}
             >
-              <SelectTrigger className="text-right">
+              <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="basic">أساسي - مجاني</SelectItem>
-                <SelectItem value="premium">مميز - $29/شهر</SelectItem>
-                <SelectItem value="enterprise">متقدم - $99/شهر</SelectItem>
+                <SelectItem value="basic">{t('plans.basic')}</SelectItem>
+                <SelectItem value="premium">{t('plans.premium')}</SelectItem>
+                <SelectItem value="enterprise">{t('plans.enterprise')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">رقم الهاتف (اختياري)</Label>
+            <Label htmlFor="phone">{t('createTenantDialog.phoneLabel')}</Label>
             <Input
               id="phone"
               value={formData.phoneNumber}
@@ -194,13 +163,13 @@ const CreateTenantDialog = ({ open, onOpenChange, onTenantCreated }: CreateTenan
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">العنوان (اختياري)</Label>
+            <Label htmlFor="address">{t('createTenantDialog.addressLabel')}</Label>
             <Input
               id="address"
               value={formData.address}
               onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-              placeholder="عنوان المطعم"
-              className="text-right"
+              placeholder={t('createTenantDialog.addressPlaceholder')}
+              className={isRTL ? 'text-right' : 'text-left'}
             />
           </div>
 
@@ -210,14 +179,14 @@ const CreateTenantDialog = ({ open, onOpenChange, onTenantCreated }: CreateTenan
               variant="outline" 
               onClick={() => onOpenChange(false)}
             >
-              إلغاء
+              {t('common.cancel')}
             </Button>
             <Button 
               type="submit" 
               disabled={loading}
               variant="hero"
             >
-              {loading ? "جاري الإنشاء..." : "إنشاء المطعم"}
+              {loading ? t('common.loading') : t('createTenantDialog.submitButton')}
             </Button>
           </div>
         </form>

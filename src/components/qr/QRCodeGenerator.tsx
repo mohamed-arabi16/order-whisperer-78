@@ -16,67 +16,14 @@ interface Tenant {
   slug: string;
 }
 
-// QR code generation using a simple library approach
-const generateQRCodeDataURL = (text: string, size: number = 200): string => {
-  // Using a simple approach - in a real implementation you'd use a library like qrcode
-  // For now, return a placeholder that shows QR-like pattern
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  
-  if (!ctx) return '';
-  
-  // Create a simple QR code-like pattern
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = '#000000';
-  
-  const cellSize = size / 25;
-  
-  // Simple pattern that resembles a QR code
-  const pattern = [
-    [1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,1,0,1,1,0,1,1,0,1,1,0,0,1,0,0,0,0,0,1],
-    [1,0,1,1,1,0,1,0,0,1,1,0,1,0,1,1,0,0,1,0,1,1,1,0,1],
-    [1,0,1,1,1,0,1,0,1,0,1,1,0,1,0,1,1,0,1,0,1,1,1,0,1],
-    [1,0,1,1,1,0,1,0,1,1,0,0,1,0,1,0,0,0,1,0,1,1,1,0,1],
-    [1,0,0,0,0,0,1,0,0,0,1,1,0,1,1,1,0,0,1,0,0,0,0,0,1],
-    [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,0,0,0,0,0,0,0,0],
-    [0,1,1,0,1,1,1,1,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,1],
-    [1,0,1,1,0,0,0,0,1,1,0,1,0,1,1,0,1,0,1,0,1,0,0,1,0],
-    [0,1,1,0,1,1,1,1,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,1],
-    [1,0,0,1,0,0,0,0,1,1,0,1,0,1,1,0,1,0,1,0,1,0,0,1,0],
-    [0,1,1,0,1,1,1,1,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,1],
-    [1,0,1,1,0,0,0,0,1,1,0,1,0,1,1,0,1,0,1,0,1,0,0,1,0],
-    [0,1,1,0,1,1,1,1,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,1],
-    [1,0,0,1,0,0,0,0,1,1,0,1,0,1,1,0,1,0,1,0,1,0,0,1,0],
-    [0,1,1,0,1,1,1,1,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,1],
-    [0,0,0,0,0,0,0,0,1,0,1,1,0,1,0,1,1,0,0,1,1,1,0,1,0],
-    [1,1,1,1,1,1,1,0,0,1,0,0,1,0,1,0,0,1,1,0,0,0,1,0,1],
-    [1,0,0,0,0,0,1,0,1,0,1,1,0,1,0,1,1,0,1,1,1,0,0,1,0],
-    [1,0,1,1,1,0,1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,1,1,0,1],
-    [1,0,1,1,1,0,1,0,1,0,1,1,0,1,0,1,1,0,1,1,0,0,0,1,0],
-    [1,0,1,1,1,0,1,0,0,1,0,0,1,0,1,0,0,1,0,1,1,1,1,0,1],
-    [1,0,0,0,0,0,1,0,1,0,1,1,0,1,0,1,1,0,1,0,0,0,0,1,0],
-    [1,1,1,1,1,1,1,0,0,1,0,0,1,0,1,0,0,1,1,1,1,1,1,1,1]
-  ];
-  
-  for (let row = 0; row < 25; row++) {
-    for (let col = 0; col < 25; col++) {
-      if (pattern[row] && pattern[row][col]) {
-        ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-      }
-    }
-  }
-  
-  return canvas.toDataURL();
-};
+import QRCode from 'qrcode';
+
+import { useTranslation } from '@/hooks/useTranslation';
 
 const QRCodeGenerator = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { t, isRTL } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,28 +42,41 @@ const QRCodeGenerator = () => {
   }, [tenant, qrSize]);
 
   const fetchTenantData = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('tenants')
-        .select('id, name, slug')
-        .eq('owner_id', profile?.id)
-        .single();
+      const { data: tenantId, error: rpcError } = await supabase.rpc('get_user_tenant');
+      if (rpcError) throw rpcError;
 
-      if (error) {
-        console.error('Error fetching tenant:', error);
+      if (tenantId) {
+        const { data, error } = await supabase
+          .from('tenants')
+          .select('id, name, slug')
+          .eq('id', tenantId)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setTenant(data);
+          const url = `${window.location.origin}/menu/${data.slug}`;
+          setMenuUrl(url);
+        }
       } else {
-        setTenant(data);
-        const url = `${window.location.origin}/menu/${data.slug}`;
-        setMenuUrl(url);
+        console.error('No tenant found for this user.');
       }
     } catch (error) {
       console.error('Error fetching tenant data:', error);
+      toast({
+        title: t('common.error'),
+        description: t('qr.tenantNotFound'),
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const generateQRCode = () => {
+  const generateQRCode = async () => {
     if (!tenant) return;
 
     const url = `${window.location.origin}/menu/${tenant.slug}`;
@@ -128,8 +88,22 @@ const QRCodeGenerator = () => {
     };
     
     const size = sizes[qrSize as keyof typeof sizes];
-    const dataURL = generateQRCodeDataURL(url, size);
-    setQrCodeDataURL(dataURL);
+
+    try {
+      const dataURL = await QRCode.toDataURL(url, {
+        width: size,
+        margin: 2,
+        errorCorrectionLevel: 'H'
+      });
+      setQrCodeDataURL(dataURL);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: t('common.error'),
+        description: t('qr.generationFailed'),
+        variant: "destructive",
+      });
+    }
   };
 
   const downloadQRCode = () => {
@@ -141,8 +115,8 @@ const QRCodeGenerator = () => {
     link.click();
 
     toast({
-      title: "تم التحميل",
-      description: "تم تحميل رمز QR بنجاح",
+      title: t('common.success'),
+      description: t('qr.downloadSuccess'),
     });
   };
 
@@ -150,13 +124,13 @@ const QRCodeGenerator = () => {
     try {
       await navigator.clipboard.writeText(text);
       toast({
-        title: "تم النسخ",
-        description: "تم نسخ الرابط إلى الحافظة",
+        title: t('common.success'),
+        description: t('qr.copySuccess'),
       });
     } catch (error) {
       toast({
-        title: "خطأ",
-        description: "لم يتم نسخ الرابط",
+        title: t('common.error'),
+        description: t('qr.copyFailed'),
         variant: "destructive",
       });
     }
@@ -174,15 +148,15 @@ const QRCodeGenerator = () => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
-        <html dir="rtl">
+        <html dir="${isRTL ? 'rtl' : 'ltr'}">
           <head>
-            <title>رمز QR - ${tenant?.name}</title>
+            <title>${t('qr.print.title')} - ${tenant?.name}</title>
             <style>
               body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 text-align: center;
                 padding: 20px;
-                direction: rtl;
+                direction: ${isRTL ? 'rtl' : 'ltr'};
               }
               .qr-container {
                 max-width: 400px;
@@ -216,13 +190,13 @@ const QRCodeGenerator = () => {
           <body>
             <div class="qr-container">
               <div class="title">${tenant?.name}</div>
-              <div class="subtitle">قائمة الطعام الرقمية</div>
+              <div class="subtitle">${t('qr.print.subtitle')}</div>
               <div class="qr-image">
                 <img src="${qrCodeDataURL}" alt="QR Code" style="max-width: 100%; height: auto;" />
               </div>
               <div class="instructions">
-                امسح هذا الرمز بكاميرا هاتفك<br>
-                لعرض قائمة الطعام الرقمية
+                ${t('qr.print.instructionsLine1')}<br>
+                ${t('qr.print.instructionsLine2')}
               </div>
             </div>
           </body>
@@ -238,7 +212,7 @@ const QRCodeGenerator = () => {
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">جاري التحميل...</p>
+          <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -246,11 +220,11 @@ const QRCodeGenerator = () => {
 
   if (!tenant) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center p-4" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center p-4" dir={isRTL ? 'rtl' : 'ltr'}>
         <Card className="w-full max-w-md text-center p-8">
-          <h2 className="text-xl font-bold mb-2">خطأ</h2>
+          <h2 className="text-xl font-bold mb-2">{t('common.error')}</h2>
           <p className="text-muted-foreground">
-            لم يتم العثور على بيانات المطعم
+            {t('qr.tenantNotFound')}
           </p>
         </Card>
       </div>
@@ -258,20 +232,20 @@ const QRCodeGenerator = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold gradient-hero bg-clip-text text-transparent">
-              رمز QR للقائمة الرقمية
+              {t('qr.title')}
             </h1>
             <p className="text-muted-foreground mt-1">
-              إنشاء وتحميل رمز QR للمطعم
+              {t('qr.description')}
             </p>
           </div>
           <Button variant="outline" onClick={() => window.history.back()}>
-            العودة للوحة التحكم
+            {t('common.back')}
           </Button>
         </div>
 
@@ -282,10 +256,10 @@ const QRCodeGenerator = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <QrCode className="h-5 w-5" />
-                  رمز QR
+                  {t('qr.card.title')}
                 </CardTitle>
                 <CardDescription>
-                  امسح هذا الرمز للوصول إلى قائمة {tenant.name}
+                  {t('qr.card.description', { restaurantName: tenant.name })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center space-y-4">
@@ -304,16 +278,16 @@ const QRCodeGenerator = () => {
                 )}
                 
                 <div className="space-y-2">
-                  <Label htmlFor="qr-size">حجم الرمز:</Label>
-                  <Select value={qrSize} onValueChange={setQrSize}>
+                  <Label htmlFor="qr-size">{t('qr.sizeLabel')}</Label>
+                  <Select value={qrSize} onValueChange={setQrSize} dir={isRTL ? 'rtl' : 'ltr'}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="small">صغير (150×150)</SelectItem>
-                      <SelectItem value="medium">متوسط (200×200)</SelectItem>
-                      <SelectItem value="large">كبير (300×300)</SelectItem>
-                      <SelectItem value="xlarge">كبير جداً (400×400)</SelectItem>
+                      <SelectItem value="small">{t('qr.sizes.small')}</SelectItem>
+                      <SelectItem value="medium">{t('qr.sizes.medium')}</SelectItem>
+                      <SelectItem value="large">{t('qr.sizes.large')}</SelectItem>
+                      <SelectItem value="xlarge">{t('qr.sizes.xlarge')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -323,7 +297,7 @@ const QRCodeGenerator = () => {
             {/* Actions */}
             <Card className="shadow-card">
               <CardHeader>
-                <CardTitle>الإجراءات</CardTitle>
+                <CardTitle>{t('qr.actions.title')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
@@ -333,7 +307,7 @@ const QRCodeGenerator = () => {
                   variant="default"
                 >
                   <Download className="h-4 w-4 ml-2" />
-                  تحميل رمز QR
+                  {t('qr.actions.download')}
                 </Button>
 
                 <Button
@@ -343,7 +317,7 @@ const QRCodeGenerator = () => {
                   variant="outline"
                 >
                   <Printer className="h-4 w-4 ml-2" />
-                  طباعة رمز QR
+                  {t('qr.actions.print')}
                 </Button>
 
                 <Button
@@ -352,7 +326,7 @@ const QRCodeGenerator = () => {
                   variant="outline"
                 >
                   <ExternalLink className="h-4 w-4 ml-2" />
-                  معاينة القائمة
+                  {t('qr.actions.preview')}
                 </Button>
               </CardContent>
             </Card>
@@ -363,9 +337,9 @@ const QRCodeGenerator = () => {
             {/* Menu URL */}
             <Card className="shadow-card">
               <CardHeader>
-                <CardTitle>رابط القائمة</CardTitle>
+                <CardTitle>{t('qr.menuUrl.title')}</CardTitle>
                 <CardDescription>
-                  يمكن للعملاء أيضاً الوصول للقائمة مباشرة عبر هذا الرابط
+                  {t('qr.menuUrl.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -393,7 +367,7 @@ const QRCodeGenerator = () => {
             {/* Instructions */}
             <Card className="shadow-card border-primary/20 bg-primary/5">
               <CardHeader>
-                <CardTitle className="text-primary">كيفية الاستخدام</CardTitle>
+                <CardTitle className="text-primary">{t('qr.instructions.title')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
@@ -402,9 +376,9 @@ const QRCodeGenerator = () => {
                       1
                     </div>
                     <div>
-                      <h4 className="font-medium">طباعة الرمز</h4>
+                      <h4 className="font-medium">{t('qr.instructions.step1.title')}</h4>
                       <p className="text-sm text-muted-foreground">
-                        احفظ أو اطبع رمز QR بحجم مناسب (يُفضل 5×5 سم على الأقل)
+                        {t('qr.instructions.step1.description')}
                       </p>
                     </div>
                   </div>
@@ -414,9 +388,9 @@ const QRCodeGenerator = () => {
                       2
                     </div>
                     <div>
-                      <h4 className="font-medium">وضع الرمز</h4>
+                      <h4 className="font-medium">{t('qr.instructions.step2.title')}</h4>
                       <p className="text-sm text-muted-foreground">
-                        ضع الرمز على طاولات المطعم أو بالقرب من المدخل
+                        {t('qr.instructions.step2.description')}
                       </p>
                     </div>
                   </div>
@@ -426,9 +400,9 @@ const QRCodeGenerator = () => {
                       3
                     </div>
                     <div>
-                      <h4 className="font-medium">المسح والطلب</h4>
+                      <h4 className="font-medium">{t('qr.instructions.step3.title')}</h4>
                       <p className="text-sm text-muted-foreground">
-                        العملاء يمسحون الرمز بكاميرا هاتفهم ويطلبون عبر واتساب
+                        {t('qr.instructions.step3.description')}
                       </p>
                     </div>
                   </div>
@@ -439,25 +413,25 @@ const QRCodeGenerator = () => {
             {/* Tips */}
             <Card className="shadow-card">
               <CardHeader>
-                <CardTitle>نصائح هامة</CardTitle>
+                <CardTitle>{t('qr.tips.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="w-1 h-1 bg-primary rounded-full mt-2 flex-shrink-0"></span>
-                    تأكد من وضوح الرمز عند الطباعة
+                    {t('qr.tips.tip1')}
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1 h-1 bg-primary rounded-full mt-2 flex-shrink-0"></span>
-                    ضع الرمز في مكان يسهل وصول العملاء إليه
+                    {t('qr.tips.tip2')}
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1 h-1 bg-primary rounded-full mt-2 flex-shrink-0"></span>
-                    احفظ نسخة رقمية من الرمز للاستخدام المستقبلي
+                    {t('qr.tips.tip3')}
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1 h-1 bg-primary rounded-full mt-2 flex-shrink-0"></span>
-                    يمكنك إنشاء أحجام مختلفة للاستخدامات المختلفة
+                    {t('qr.tips.tip4')}
                   </li>
                 </ul>
               </CardContent>

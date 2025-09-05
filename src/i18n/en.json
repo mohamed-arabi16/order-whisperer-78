@@ -25,6 +25,8 @@
     "category": "Category",
     "available": "Available",
     "unavailable": "Unavailable",
+    "active": "Active",
+    "inactive": "Inactive",
     "total": "Total",
     "currency": "LBP"
   },
@@ -60,33 +62,88 @@
   },
   "superAdmin": {
     "title": "Super Admin Dashboard",
-    "tenantsManagement": "Restaurant Management",
-    "totalTenants": "Total Restaurants",
-    "activeTenants": "Active Restaurants",
-    "recentTenants": "Recent Restaurants",
-    "createTenant": "Create New Restaurant",
-    "tenantName": "Restaurant Name",
-    "ownerEmail": "Owner Email",
-    "slug": "Slug",
-    "phoneNumber": "Phone Number",
-    "creating": "Creating...",
-    "tenantCreated": "Restaurant created successfully"
+    "welcome": "Welcome {{name}} - Manage restaurants and accounts",
+    "stats": {
+      "totalRestaurants": "Total Restaurants",
+      "activeCount": "{{count}} active",
+      "paidPlans": "Paid Plans",
+      "outOfTotal": "out of {{total}} restaurants",
+      "activeAccounts": "Active Accounts",
+      "activityPercentage": "{{percentage}}% activity rate"
+    },
+    "tenantsManagement": {
+      "title": "Restaurant Management",
+      "description": "Create and manage restaurant accounts on the platform",
+      "addButton": "Add New Restaurant"
+    },
+    "noTenants": {
+      "title": "No restaurants registered yet",
+      "description": "Start by adding the first restaurant to the platform"
+    },
+    "tenant": {
+      "owner": "Owner",
+      "email": "Email",
+      "registrationDate": "Registration Date",
+      "viewMenu": "View Menu"
+    }
   },
   "restaurant": {
-    "dashboard": "Restaurant Dashboard",
-    "menuManagement": "Menu Management",
-    "branding": "Branding",
-    "qrCode": "QR Code",
-    "analytics": "Analytics",
-    "settings": "Settings",
-    "menuItems": "Menu Items",
-    "categories": "Categories",
-    "orders": "Orders",
-    "quickActions": "Quick Actions",
-    "addMenuItem": "Add New Item",
-    "addCategory": "Add New Category",
-    "viewMenu": "View Menu",
-    "generateQR": "Generate QR"
+    "dashboardTitle": "{{restaurantName}} Restaurant",
+    "welcome": "Welcome {{userName}} - Restaurant Control Panel",
+    "noTenant": {
+      "welcome": "Welcome {{name}}",
+      "description": "No restaurant account associated with this user was found",
+      "contactAdmin": "Please contact the general manager to set up the restaurant account"
+    },
+    "infoCard": {
+      "title": "Restaurant Information",
+      "name": "Restaurant Name",
+      "plan": "Subscription Plan",
+      "phone": "Phone Number",
+      "address": "Address"
+    },
+    "shareableLink": {
+      "title": "Shareable Menu Link",
+      "description": "Share this link with your customers to display the digital menu."
+    },
+    "quickActions": {
+      "menu": {
+        "title": "Menu Management",
+        "description": "Add and edit items and categories",
+        "button": "Build Menu"
+      },
+      "branding": {
+        "title": "Branding & Logo",
+        "description": "Customize restaurant colors and logo",
+        "button": "Customize Design"
+      },
+      "qr": {
+        "title": "QR Code",
+        "description": "Download and print the QR code for the menu",
+        "button": "Generate QR Code"
+      }
+    },
+    "gettingStarted": {
+      "title": "Quick Start Guide",
+      "description": "Follow these steps to set up your digital restaurant menu",
+      "step1": {
+        "title": "Create Menu Categories",
+        "description": "Start by adding categories like \"Grills\" and \"Appetizers\""
+      },
+      "step2": {
+        "title": "Add Items",
+        "description": "Add dishes with prices, images, and descriptions"
+      },
+      "step3": {
+        "title": "Customize Design",
+        "description": "Upload the restaurant logo and choose the appropriate colors"
+      },
+      "step4": {
+        "title": "Print QR Code",
+        "description": "Get the QR code and place it on the restaurant tables"
+      },
+      "cta": "Start Building Your Menu Now"
+    }
   },
   "menu": {
     "management": "Menu Management",
@@ -141,12 +198,62 @@
     "saved": "Changes saved"
   },
   "qr": {
-    "title": "QR Code",
-    "generate": "Generate QR Code",
-    "download": "Download",
-    "preview": "Preview",
-    "menuUrl": "Menu URL",
-    "print": "Print"
+    "title": "Digital Menu QR Code",
+    "description": "Generate and download the QR code for the restaurant",
+    "tenantNotFound": "Restaurant data not found",
+    "generationFailed": "Failed to generate QR code",
+    "downloadSuccess": "QR code downloaded successfully",
+    "copySuccess": "Link copied to clipboard",
+    "copyFailed": "Failed to copy link",
+    "card": {
+      "title": "QR Code",
+      "description": "Scan this code to access the menu for {{restaurantName}}"
+    },
+    "sizeLabel": "QR Code Size:",
+    "sizes": {
+      "small": "Small (150x150)",
+      "medium": "Medium (200x200)",
+      "large": "Large (300x300)",
+      "xlarge": "Extra Large (400x400)"
+    },
+    "actions": {
+      "title": "Actions",
+      "download": "Download QR Code",
+      "print": "Print QR Code",
+      "preview": "Preview Menu"
+    },
+    "menuUrl": {
+      "title": "Menu URL",
+      "description": "Customers can also access the menu directly via this link"
+    },
+    "instructions": {
+      "title": "How to Use",
+      "step1": {
+        "title": "Print the Code",
+        "description": "Save or print the QR code in a suitable size (at least 5x5 cm is recommended)"
+      },
+      "step2": {
+        "title": "Place the Code",
+        "description": "Place the code on restaurant tables or near the entrance"
+      },
+      "step3": {
+        "title": "Scan and Order",
+        "description": "Customers scan the code with their phone camera and order via WhatsApp"
+      }
+    },
+    "tips": {
+      "title": "Important Tips",
+      "tip1": "Make sure the code is clear when printing",
+      "tip2": "Place the code where customers can easily access it",
+      "tip3": "Save a digital copy of the code for future use",
+      "tip4": "You can create different sizes for different uses"
+    },
+    "print": {
+      "title": "QR Code",
+      "subtitle": "Digital Menu",
+      "instructionsLine1": "Scan this code with your phone's camera",
+      "instructionsLine2": "to view the digital menu"
+    }
   },
   "hero": {
     "title": "Digital Menu Platform for Restaurants",
@@ -187,5 +294,29 @@
     "subtitle": "Comprehensive platform for managing digital restaurant menus with direct WhatsApp integration for orders",
     "restaurantLogin": "Restaurant Login",
     "dashboard": "Dashboard"
+  },
+  "createTenantDialog": {
+    "title": "Add New Restaurant",
+    "description": "Create a new restaurant account on the platform and set a subscription plan.",
+    "restaurantNameLabel": "Restaurant Name",
+    "restaurantNamePlaceholder": "e.g., Damascus Gate",
+    "ownerNameLabel": "Owner's Name",
+    "ownerNamePlaceholder": "Full Name",
+    "ownerEmailLabel": "Owner's Email",
+    "passwordLabel": "Initial Password",
+    "subscriptionPlanLabel": "Subscription Plan",
+    "phoneLabel": "Phone Number (Optional)",
+    "addressLabel": "Address (Optional)",
+    "addressPlaceholder": "Restaurant Address",
+    "submitButton": "Create Restaurant",
+    "successTitle": "Restaurant Created Successfully",
+    "successDescription": "Account for {{restaurantName}} has been created and login details sent to the owner.",
+    "errorTitle": "Error Creating Restaurant",
+    "genericError": "An error occurred while creating the restaurant account."
+  },
+  "plans": {
+    "basic": "Basic - Free",
+    "premium": "Premium - $29/month",
+    "enterprise": "Enterprise - $99/month"
   }
 }
