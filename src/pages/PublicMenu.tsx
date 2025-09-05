@@ -4,11 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Minus, ShoppingCart } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Plus, Minus, ShoppingCart, Vegan, Flame } from "lucide-react";
 import { generateWhatsAppMessage } from "@/lib/whatsapp"; // WhatsApp integration
 import { useTranslation } from "@/hooks/useTranslation";
 import { useToast } from "@/hooks/use-toast";
+import { MenuSkeleton } from "@/components/menu/MenuSkeleton";
+import { VscFlame } from "@/components/icons/VscFlame";
+import { VscVm } from "@/components/icons/VscVm";
 
 /**
  * Represents a tenant (restaurant) with public-facing information.
@@ -19,6 +22,7 @@ interface Tenant {
   slug: string;
   phone_number: string | null;
   logo_url: string | null;
+  cover_photo_url: string | null;
   primary_color: string | null;
 }
 
@@ -35,13 +39,14 @@ interface Category {
  * Represents a menu item.
  */
 interface MenuItem {
-  id: string;
+  id:string;
   name: string;
   description: string | null;
   price: number;
   image_url: string | null;
   category_id: string;
   is_available: boolean;
+  dietary_preferences: ('vegetarian' | 'spicy' | 'gluten-free')[];
 }
 
 /**
@@ -70,6 +75,7 @@ const PublicMenu = (): JSX.Element => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -95,6 +101,9 @@ const PublicMenu = (): JSX.Element => {
           setTenant(data.tenant);
           setCategories(data.categories);
           setMenuItems(data.menu_items);
+          if (data.categories.length > 0) {
+            setActiveCategory(data.categories[0].id);
+          }
         }
       } catch (err) {
         console.error('An unexpected error occurred:', err);
@@ -112,6 +121,24 @@ const PublicMenu = (): JSX.Element => {
 
     fetchMenu();
   }, [slug, t, toast]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const categoryElements = categories.map(c => document.getElementById(`category-${c.id}`));
+      const offset = window.innerHeight * 0.4; // 40% from the top
+
+      for (let i = categoryElements.length - 1; i >= 0; i--) {
+        const el = categoryElements[i];
+        if (el && el.getBoundingClientRect().top <= offset) {
+          setActiveCategory(categories[i].id);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [categories]);
 
   const addToCart = (item: MenuItem) => {
     setCart(prev => {
@@ -161,6 +188,20 @@ const PublicMenu = (): JSX.Element => {
     return menuItems.filter(item => item.category_id === categoryId);
   };
 
+  const scrollToCategory = (categoryId: string) => {
+    const element = document.getElementById(`category-${categoryId}`);
+    if (element) {
+      const headerOffset = 80; // Adjust for sticky header/app bar
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   const handleSendToWhatsApp = () => {
     if (!tenant?.phone_number) {
       toast({
@@ -183,14 +224,7 @@ const PublicMenu = (): JSX.Element => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center" dir={isRTL ? 'rtl' : 'ltr'}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">{t('common.loading')}</p>
-        </div>
-      </div>
-    );
+    return <MenuSkeleton />;
   }
 
   if (!tenant) {
@@ -206,19 +240,27 @@ const PublicMenu = (): JSX.Element => {
 
   return (
     <div className="min-h-screen bg-background" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Restaurant Header - Clean and Simple */}
-      <header className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+      {/* Restaurant Header - Enhanced with Cover Photo */}
+      <header className="relative h-48 md:h-64 w-full">
+        <img
+          src={tenant.cover_photo_url || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&h=400&fit=crop'}
+          alt={t('publicMenu.restaurantCoverImage', 'Restaurant Cover Image')}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
+          <div className="container mx-auto flex items-center gap-4">
             {tenant.logo_url && (
-              <img 
-                src={tenant.logo_url} 
+              <img
+                src={tenant.logo_url}
                 alt={t('publicMenu.restaurantLogo')}
-                className="w-12 h-12 rounded-lg object-cover"
+                className="w-16 h-16 md:w-20 md:h-20 rounded-lg object-cover border-2 border-background shadow-lg"
               />
             )}
             <div>
-              <h1 className="text-xl font-bold text-foreground">{tenant.name}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-white shadow-text">
+                {tenant.name}
+              </h1>
             </div>
           </div>
         </div>
@@ -248,17 +290,27 @@ const PublicMenu = (): JSX.Element => {
 
         {/* Menu Categories and Items */}
         <div className="md:grid md:grid-cols-4 md:gap-8">
-          <aside className="md:col-span-1 md:sticky md:top-[104px] h-fit">
-            <h2 className="text-lg font-semibold mb-4 hidden md:block">{t('publicMenu.categories')}</h2>
-            <Tabs defaultValue={categories[0]?.id} orientation="vertical" className="w-full">
-              <TabsList className="md:flex-col md:items-start md:h-auto w-full justify-start overflow-x-auto p-2 h-auto bg-transparent">
-                {categories.map(category => (
-                  <TabsTrigger key={category.id} value={category.id} className="flex-shrink-0 md:w-full md:justify-start">
-                    {category.name}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+          <aside className="hidden md:block md:col-span-1 sticky top-24 self-start">
+            <h2 className="text-lg font-semibold mb-4">{t('publicMenu.categories', 'Categories')}</h2>
+            <nav className="space-y-2">
+              {categories.map(category => (
+                <a
+                  key={category.id}
+                  href={`#category-${category.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToCategory(category.id);
+                  }}
+                  className={`block px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeCategory === category.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  {category.name}
+                </a>
+              ))}
+            </nav>
           </aside>
           <div className="md:col-span-3">
             {categories.map(category => (
@@ -268,37 +320,59 @@ const PublicMenu = (): JSX.Element => {
                   </h2>
                 <div className="grid gap-4 mt-4 sm:grid-cols-2 lg:grid-cols-3">
                   {getItemsForCategory(category.id).map(item => (
-                    <Card key={item.id} className="overflow-hidden shadow-card gradient-card flex flex-col">
-                      {item.image_url && (
-                        <img
-                          src={item.image_url}
-                          alt={t('publicMenu.menuItemImage')}
-                          className="w-full h-40 object-cover"
-                        />
-                      )}
-                      <CardContent className="p-4 flex flex-col flex-grow">
-                        <div className="flex-grow">
-                          <h3 className="font-medium text-foreground truncate">{item.name}</h3>
+                    <Card
+                      key={item.id}
+                      className="overflow-hidden shadow-card transition-all duration-300 hover:shadow-lg flex flex-col md:flex-row md:items-center"
+                    >
+                      <img
+                        src={item.image_url || '/placeholder.svg'}
+                        alt={item.name}
+                        className="w-full h-40 md:w-32 md:h-32 object-cover"
+                      />
+                      <CardContent className="p-4 flex flex-col flex-grow justify-between">
+                        <div>
+                          <h3 className="font-bold text-lg text-foreground">{item.name}</h3>
                           {item.description && (
                             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                               {item.description}
                             </p>
                           )}
-                           <p className="text-sm font-semibold text-primary mt-2">
-                              {formatPrice(item.price)}
-                            </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            {item.dietary_preferences?.includes('vegetarian') && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <VscVm className="h-5 w-5 text-green-600" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{t('dietary.vegetarian', 'Vegetarian')}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                            {item.dietary_preferences?.includes('spicy') && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <VscFlame className="h-5 w-5 text-red-600" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{t('dietary.spicy', 'Spicy')}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
                         </div>
 
-                        {!item.is_available && (
-                          <Badge variant="secondary" className="text-xs mt-2 self-start">
-                            {t('common.unavailable')}
-                          </Badge>
-                        )}
+                        <div className="flex items-center justify-between mt-4">
+                          <p className="text-lg font-semibold text-primary">
+                            {formatPrice(item.price)}
+                          </p>
 
-                        {item.is_available && (
-                          <div className="flex items-center justify-end mt-4">
+                          {item.is_available ? (
                             <div className="flex items-center gap-2">
-                              {getItemQuantity(item.id) > 0 ? (
+                              {getItemQuantity(item.id) > 0 && (
                                 <>
                                   <Button
                                     size="sm"
@@ -312,7 +386,7 @@ const PublicMenu = (): JSX.Element => {
                                     {getItemQuantity(item.id)}
                                   </span>
                                 </>
-                              ) : null}
+                              )}
                               <Button
                                 size="sm"
                                 onClick={() => addToCart(item)}
@@ -321,8 +395,12 @@ const PublicMenu = (): JSX.Element => {
                                 <Plus size={16} />
                               </Button>
                             </div>
-                          </div>
-                        )}
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">
+                              {t('common.unavailable', 'Unavailable')}
+                            </Badge>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
