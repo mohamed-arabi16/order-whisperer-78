@@ -507,6 +507,7 @@ const MenuItemManager = ({
                       variant="destructive"
                       size="sm"
                       className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                        aria-label="Remove image"
                       onClick={() => {
                         setImageFile(null);
                         setImagePreview('');
@@ -612,6 +613,7 @@ const MenuItemManager = ({
                       variant="destructive"
                       size="sm"
                       className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                        aria-label="Remove image"
                       onClick={() => {
                         setImageFile(null);
                         setImagePreview('');

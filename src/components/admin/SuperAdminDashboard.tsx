@@ -231,7 +231,17 @@ const SuperAdminDashboard = (): JSX.Element => {
               </p>
             </CardContent>
           </Card>
-          <Card className="shadow-card hover:shadow-warm transition-smooth cursor-pointer" onClick={() => navigate('/analytics')}>
+          <Card
+            className="shadow-card hover:shadow-warm transition-smooth cursor-pointer"
+            onClick={() => navigate('/analytics')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                navigate('/analytics');
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t('superAdmin.stats.analytics')}</CardTitle>
               <LineChart className="h-4 w-4 text-muted-foreground" />
@@ -260,8 +270,9 @@ const SuperAdminDashboard = (): JSX.Element => {
                   onClick={handleExport}
                   variant="outline"
                   className="flex items-center gap-2"
+                  aria-label={t('superAdmin.tenantsManagement.exportAriaLabel')}
                 >
-                  <Download className="h-4 w-4" />
+                  <Download className="h-4 w-4" aria-hidden="true" />
                   {t('common.export')}
                 </Button>
                 <Button
@@ -279,9 +290,10 @@ const SuperAdminDashboard = (): JSX.Element => {
             {/* Search and Filters */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 <Input
                   placeholder={t('superAdmin.filters.searchPlaceholder')}
+                  aria-label={t('superAdmin.filters.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
