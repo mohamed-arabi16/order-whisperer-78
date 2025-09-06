@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -44,6 +44,8 @@ const signUpSchema = z.object({
 const Auth = (): JSX.Element => {
   const { user, signUp, signIn, loading } = useAuth();
   const { t, isRTL } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "signin";
 
   const signInForm = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
@@ -98,7 +100,7 @@ const Auth = (): JSX.Element => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">{t('auth.signInTab')}</TabsTrigger>
               <TabsTrigger value="signup">{t('auth.signUpTab')}</TabsTrigger>
