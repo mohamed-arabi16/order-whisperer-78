@@ -8,6 +8,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Check } from "lucide-react";
+import AnimatedSection from "@/components/AnimatedSection";
+import { Link } from "react-router-dom";
 
 /**
  * A page component that displays the pricing plans for the service.
@@ -22,11 +24,14 @@ const Pricing = (): JSX.Element => {
       name: "Basic",
       price: "Free",
       features: [
-        "Up to 10 menu items",
+        "Up to 20 menu items",
         "QR code generation",
         "WhatsApp ordering",
         "Basic analytics",
+        "Email support",
       ],
+      cta: "Get Started",
+      link: "/auth?tab=signup",
     },
     {
       name: "Premium",
@@ -36,7 +41,11 @@ const Pricing = (): JSX.Element => {
         "Advanced QR code customization",
         "Priority support",
         "Advanced analytics",
+        "Customer feedback management",
+        "Staff accounts",
       ],
+      cta: "Get Started",
+      link: "/auth?tab=signup",
     },
     {
       name: "Enterprise",
@@ -46,39 +55,49 @@ const Pricing = (): JSX.Element => {
         "Custom branding",
         "Dedicated account manager",
         "On-premise deployment",
+        "API access",
+        "Custom integrations",
       ],
+      cta: "Contact Us",
+      link: "/contact",
     },
   ];
 
   return (
     <div className="min-h-screen bg-background pt-24" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="container mx-auto px-4">
-        <h1 className="text-4xl font-bold text-center mb-4">{t('pricing.title')}</h1>
-        <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-12">
-          {t('pricing.description')}
-        </p>
+        <AnimatedSection>
+          <h1 className="text-4xl font-bold text-center mb-4">{t('pricing.title')}</h1>
+          <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-12">
+            {t('pricing.description')}
+          </p>
+        </AnimatedSection>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {plans.map((plan) => (
-            <Card key={plan.name} className="flex flex-col">
-              <CardHeader>
-                <CardTitle>{plan.name}</CardTitle>
-                <CardDescription className="text-4xl font-bold">{plan.price}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <ul className="space-y-4">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center">
-                      <Check className="h-5 w-5 text-green-500 mr-2" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <div className="p-6">
-                <Button className="w-full">{t('header.getStarted')}</Button>
-              </div>
-            </Card>
+          {plans.map((plan, index) => (
+            <AnimatedSection key={plan.name} className={`transition-all duration-500 delay-${index * 200}`}>
+              <Card className="flex flex-col h-full">
+                <CardHeader>
+                  <CardTitle>{plan.name}</CardTitle>
+                  <CardDescription className="text-4xl font-bold">{plan.price}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <ul className="space-y-4">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-center">
+                        <Check className="h-5 w-5 text-green-500 mr-2" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <div className="p-6">
+                  <Link to={plan.link}>
+                    <Button className="w-full">{plan.cta}</Button>
+                  </Link>
+                </div>
+              </Card>
+            </AnimatedSection>
           ))}
         </div>
       </div>
