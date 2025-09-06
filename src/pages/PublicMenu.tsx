@@ -4,14 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Minus, Plus, ShoppingCart, Star, MessageCircle, Utensils } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Star, MessageCircle, Utensils, Loader2 } from "lucide-react";
 import { motion, useAnimation } from "framer-motion";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useScrollSpy } from "@/hooks/useScrollSpy";
+import { useInView } from "react-intersection-observer";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWhatsAppMessage, openWhatsApp, validatePhoneNumber } from "@/lib/whatsapp";
 import PublicMenuSkeleton from "@/components/menu/PublicMenuSkeleton";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {
   SidebarProvider,
   Sidebar,
@@ -73,6 +77,13 @@ const PublicMenu = (): JSX.Element => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedback, setFeedback] = useState({ rating: 0, comment: "" });
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const { ref, inView } = useInView({
+    threshold: 0,
+  });
 
   const categorySelectors = useMemo(() => categories.map(c => `#category-${c.id}`), [categories]);
   const activeCategoryId = useScrollSpy(categorySelectors, {
@@ -85,13 +96,43 @@ const PublicMenu = (): JSX.Element => {
     }
   }, [activeCategoryId]);
 
+  const ITEMS_PER_PAGE = 20;
+
+  const loadMoreItems = async () => {
+    if (isFetchingMore || !hasMore || !tenant?.id) return;
+
+    setIsFetchingMore(true);
+    try {
+      const { data: itemsData, error: itemsError } = await supabase
+        .from("menu_items")
+        .select("*")
+        .eq("tenant_id", tenant.id)
+        .order("display_order")
+        .range(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE - 1);
+
+      if (itemsError) {
+        throw itemsError;
+      }
+
+      setMenuItems(prev => [...prev, ...itemsData]);
+      setPage(prev => prev + 1);
+      if (itemsData.length < ITEMS_PER_PAGE) {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error("Error fetching more menu items:", err);
+      toast.error("Failed to load more items.");
+    } finally {
+      setIsFetchingMore(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchMenuData = async () => {
+    const fetchInitialData = async () => {
       if (!slug) return;
 
       setLoading(true);
       try {
-        // Fetch tenant data
         const { data: tenantData, error: tenantError } = await supabase
           .from("tenants")
           .select("*")
@@ -101,12 +142,12 @@ const PublicMenu = (): JSX.Element => {
 
         if (tenantError || !tenantData) {
           setError("المطعم غير موجود");
+          setLoading(false);
           return;
         }
 
         setTenant(tenantData);
-        
-        // Fetch categories
+
         const { data: categoriesData } = await supabase
           .from("menu_categories")
           .select("*")
@@ -114,18 +155,11 @@ const PublicMenu = (): JSX.Element => {
           .eq("is_active", true)
           .order("display_order");
 
-        // Fetch menu items
-        const { data: itemsData } = await supabase
-          .from("menu_items")
-          .select("*")
-          .eq("tenant_id", tenantData.id)
-          .order("display_order");
-
         setCategories(categoriesData || []);
-        setMenuItems(itemsData || []);
         if (categoriesData && categoriesData.length > 0 && !activeCategory) {
           setActiveCategory(categoriesData[0].id);
         }
+
         setError(null);
       } catch (err) {
         console.error("Unexpected error:", err);
@@ -135,8 +169,20 @@ const PublicMenu = (): JSX.Element => {
       }
     };
 
-    fetchMenuData();
-  }, [slug, activeCategory]);
+    fetchInitialData();
+  }, [slug]);
+
+  useEffect(() => {
+    if (tenant?.id) {
+      loadMoreItems();
+    }
+  }, [tenant?.id]);
+
+  useEffect(() => {
+    if (inView && hasMore && !isFetchingMore) {
+      loadMoreItems();
+    }
+  }, [inView, hasMore, isFetchingMore]);
 
   const addToCart = (item: MenuItem) => {
     setCart(prev => {
@@ -237,6 +283,7 @@ const PublicMenu = (): JSX.Element => {
       return;
     }
 
+    setIsProcessingOrder(true);
     try {
       // Log order items
       await supabase.rpc('log_order_items', {
@@ -268,6 +315,8 @@ const PublicMenu = (): JSX.Element => {
     } catch (err) {
       console.error("Error processing order:", err);
       toast.error(t('publicMenu.errors.orderProcessing'));
+    } finally {
+      setIsProcessingOrder(false);
     }
   };
 
@@ -332,14 +381,17 @@ const PublicMenu = (): JSX.Element => {
                  <SidebarTrigger className="md:hidden" />
                  <h1 className="text-lg font-bold md:hidden">{tenant.name}</h1>
                </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowFeedback(true)}
-              >
-                <MessageCircle className="w-4 h-4 ml-2" />
-                تقييم
-              </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowFeedback(true)}
+                  >
+                    <MessageCircle className="w-4 h-4 ml-2" />
+                    تقييم
+                  </Button>
+                  <LanguageSwitcher />
+                </div>
             </div>
           </header>
 
@@ -365,9 +417,10 @@ const PublicMenu = (): JSX.Element => {
                         >
                           <Card className="overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
                             {item.image_url && (
-                              <img
-                              src={item.image_url}
-                              alt={item.name}
+                              <LazyLoadImage
+                                alt={item.name}
+                                src={item.image_url}
+                                effect="blur"
                                 className="w-full h-40 object-cover"
                               />
                             )}
@@ -427,9 +480,15 @@ const PublicMenu = (): JSX.Element => {
               })}
             </div>
 
-            {categories.length === 0 && (
+            {categories.length === 0 && !loading && (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">لا توجد فئات متاحة</p>
+              </div>
+            )}
+
+            {hasMore && (
+              <div ref={ref} className="flex justify-center py-6">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             )}
           </main>
@@ -450,11 +509,15 @@ const PublicMenu = (): JSX.Element => {
               <span className="font-medium">
                 {cart.length} صنف - {formatPrice(totalPrice)}
               </span>
-              <Button onClick={handleWhatsAppOrder} size="sm">
-                <motion.div animate={controls}>
-                  <ShoppingCart className="w-4 h-4 ml-2" />
-                </motion.div>
-                إرسال عبر واتساب
+              <Button onClick={handleWhatsAppOrder} size="sm" disabled={isProcessingOrder}>
+                {isProcessingOrder ? (
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                ) : (
+                  <motion.div animate={controls}>
+                    <ShoppingCart className="w-4 h-4 ml-2" />
+                  </motion.div>
+                )}
+                {isProcessingOrder ? 'جاري الإرسال...' : 'إرسال عبر واتساب'}
               </Button>
             </div>
           </div>

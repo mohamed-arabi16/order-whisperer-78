@@ -1,5 +1,6 @@
 import React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   SidebarProvider,
   Sidebar,
@@ -8,7 +9,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarInset,
-  SidebarTrigger
 } from "@/components/ui/sidebar";
 
 const PublicMenuSkeleton = () => {
@@ -45,26 +45,33 @@ const PublicMenuSkeleton = () => {
                 <Skeleton className="w-8 h-8 md:hidden" />
                 <Skeleton className="h-6 w-24 md:hidden" />
               </div>
-              <Skeleton className="h-8 w-20" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-20" />
+              </div>
             </div>
           </header>
           <main className="container mx-auto px-4 py-6 pb-24">
             <div className="space-y-8">
-              {[...Array(3)].map((_, i) => (
+              {[...Array(2)].map((_, i) => (
                 <section key={i} className="space-y-4">
-                  <Skeleton className="h-8 w-40" />
+                  <Skeleton className="h-8 w-1/3" />
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[...Array(3)].map((_, j) => (
-                      <div key={j} className="space-y-2">
-                        <Skeleton className="h-40 w-full" />
-                        <Skeleton className="h-6 w-3/4" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-1/2" />
-                        <div className="flex justify-between items-center pt-2">
-                          <Skeleton className="h-8 w-20" />
-                          <Skeleton className="h-8 w-8 rounded-full" />
-                        </div>
-                      </div>
+                      <Card key={j} className="overflow-hidden shadow-sm h-full flex flex-col">
+                        <Skeleton className="w-full h-40 object-cover" />
+                        <CardContent className="p-4 flex-1 flex flex-col justify-between">
+                          <div className="space-y-2">
+                            <Skeleton className="h-6 w-3/4" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-5/6" />
+                          </div>
+                          <div className="flex items-center justify-between mt-4">
+                            <Skeleton className="h-8 w-24" />
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 </section>

@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+
 /**
  * Represents an item in the shopping cart.
  */
@@ -92,22 +94,23 @@ export const openWhatsApp = (phoneNumber: string, message: string): void => {
     );
 
   if (isMobile) {
-    // On mobile, try to open the app first
+    toast.info("Attempting to open WhatsApp...", {
+      duration: 3000,
+    });
+
     const appUrl = `whatsapp://send?phone=${cleanNumber}&text=${encodedMessage}`;
+    window.location.href = appUrl;
 
-    // Create temporary link to test if WhatsApp app is available
-    const link = document.createElement("a");
-    link.href = appUrl;
-    link.target = "_blank";
-    link.click();
-
-    // Fallback to web after a short delay if app didn't open
+    // Fallback for when WhatsApp is not installed
     setTimeout(() => {
-      const webLink = document.createElement("a");
-      webLink.href = whatsappUrl;
-      webLink.target = "_blank";
-      webLink.click();
-    }, 1000);
+      // If the user is still on the page, it means WhatsApp didn't open.
+      if (!document.hidden) {
+        toast.error("WhatsApp not found. Opening in browser.", {
+          duration: 3000,
+        });
+        window.open(whatsappUrl, "_blank");
+      }
+    }, 2500);
   } else {
     // On desktop, open web WhatsApp
     window.open(whatsappUrl, "_blank");
