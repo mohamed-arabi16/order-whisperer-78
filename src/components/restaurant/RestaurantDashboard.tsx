@@ -50,7 +50,9 @@ const RestaurantDashboard = (): JSX.Element => {
       setLoading(true);
       try {
         const { data: tenantId, error: rpcError } = await supabase.rpc('get_user_tenant');
-        if (rpcError) throw rpcError;
+        if (rpcError) {
+          throw new Error(`Error fetching user tenant: ${rpcError.message}`);
+        }
 
         if (tenantId) {
           const { data: tenantData, error: tenantError } = await supabase
@@ -58,23 +60,28 @@ const RestaurantDashboard = (): JSX.Element => {
             .select('*')
             .eq('id', tenantId)
             .single();
-          if (tenantError) throw tenantError;
-          setTenant(tenantData);
 
-          const { data: feedbackData, error: feedbackError } = await supabase
-            .from('feedback')
-            .select('*')
-            .eq('tenant_id', tenantId)
-            .order('created_at', { ascending: false });
-          if (feedbackError) {
-            console.error("Error fetching feedback:", feedbackError);
-            toast({
-              title: t('restaurant.toast.feedbackErrorTitle'),
-              description: t('restaurant.toast.feedbackErrorDescription'),
-              variant: "destructive",
-            });
-          } else {
-            setFeedback(feedbackData || []);
+          if (tenantError) {
+            throw new Error(`Error fetching tenant data: ${tenantError.message}`);
+          }
+          if (tenantData) {
+            setTenant(tenantData);
+            const { data: feedbackData, error: feedbackError } = await supabase
+              .from('feedback')
+              .select('*')
+              .eq('tenant_id', tenantId)
+              .order('created_at', { ascending: false });
+
+            if (feedbackError) {
+              console.error("Error fetching feedback:", feedbackError);
+              toast({
+                title: t('restaurant.toast.feedbackErrorTitle'),
+                description: t('restaurant.toast.feedbackErrorDescription'),
+                variant: "destructive",
+              });
+            } else {
+              setFeedback(feedbackData || []);
+            }
           }
         } else {
           console.error('No tenant found for this user.');
@@ -84,11 +91,11 @@ const RestaurantDashboard = (): JSX.Element => {
             variant: "destructive",
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching dashboard data:', error);
         toast({
           title: t('common.error.genericTitle'),
-          description: t('common.error.genericMessage'),
+          description: error.message || t('common.error.genericMessage'),
           variant: "destructive",
         });
       } finally {
@@ -97,13 +104,38 @@ const RestaurantDashboard = (): JSX.Element => {
     };
 
     fetchData();
-  }, []);
+  }, [supabase, toast, t]);
 
   useEffect(() => {
     if (tenant) {
       setMenuUrl(`${window.location.origin}/menu/${tenant.slug}`);
     }
   }, [tenant]);
+
+  useEffect(() => {
+    if (!tenant) return;
+
+    const channel = supabase
+      .channel(`orders:${tenant.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders', filter: `tenant_id=eq.${tenant.id}` },
+        (payload) => {
+          console.log('New order received:', payload);
+          toast({
+            title: t('restaurant.toast.newOrder.title'),
+            description: t('restaurant.toast.newOrder.description', {
+              price: (payload.new as any).total_price,
+            }),
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tenant, supabase, toast, t]);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -118,31 +150,6 @@ const RestaurantDashboard = (): JSX.Element => {
         description: t('restaurant.toast.copyErrorDescription'),
         variant: "destructive",
       });
-    }
-  };
-
-  const fetchTenant = async () => {
-    setLoading(true);
-    try {
-      const { data: tenantId, error: rpcError } = await supabase.rpc('get_user_tenant');
-      if (rpcError) throw rpcError;
-
-      if (tenantId) {
-        const { data, error } = await supabase
-          .from('tenants')
-          .select('*')
-          .eq('id', tenantId)
-          .single();
-
-        if (error) throw error;
-        setTenant(data);
-      } else {
-        console.error('No tenant found for this user.');
-      }
-    } catch (error) {
-      console.error('Error fetching tenant:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -455,8 +462,11 @@ const RestaurantDashboard = (): JSX.Element => {
                     </p>
                   </div>
                 ) : (
-                  feedback.map((fb) => (
-                    <div key={fb.id} className="border-b pb-4">
+                  feedback.map((fb, index) => (
+                    <div
+                      key={fb.id}
+                      className={index < feedback.length - 1 ? "border-b pb-4" : ""}
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
                           {[...Array(5)].map((_, i) => (
