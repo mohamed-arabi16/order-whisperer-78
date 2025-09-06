@@ -101,9 +101,8 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({
 
     // Replace template variables like {{name}}, {{count}}, etc.
     if (variables && typeof result === "string") {
-      Object.entries(variables).forEach(([key, val]) => {
-        const regex = new RegExp(`{{${key}}}`, "g");
-        result = result.replace(regex, String(val));
+      result = result.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+        return variables[key] !== undefined ? String(variables[key]) : match;
       });
     }
 

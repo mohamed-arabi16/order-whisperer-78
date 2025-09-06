@@ -21,19 +21,19 @@ const Index = (): JSX.Element => {
           <Hero />
         </StaggeredFadeIn>
       </Parallax>
-      <StaggeredFadeIn>
-        <Features />
-      </StaggeredFadeIn>
-      <StaggeredFadeIn>
-        <MenuDemo />
-      </StaggeredFadeIn>
-
-      {/* Call to Action */}
-      <StaggeredFadeIn>
-        <section
-          className="py-16 px-4 bg-accent/10"
-          dir={isRTL ? "rtl" : "ltr"}
-        >
+      <div className="relative z-10 bg-background">
+        <StaggeredFadeIn>
+          <Features />
+        </StaggeredFadeIn>
+        <StaggeredFadeIn>
+          <MenuDemo />
+        </StaggeredFadeIn>
+        {/* Call to Action */}
+        <StaggeredFadeIn>
+          <section
+            className="py-16 px-4 bg-accent/10"
+            dir={isRTL ? "rtl" : "ltr"}
+          >
           <div className="container mx-auto text-center">
             <h2 className="text-2xl font-bold mb-4 text-accent">
               {t("cta.title")}
