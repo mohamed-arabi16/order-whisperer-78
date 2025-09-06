@@ -439,7 +439,38 @@
     "cartEmpty": "Your cart is empty",
     "total": "Total",
     "whatsappButton": "Send Order via WhatsApp",
-    "currency": "LBP"
+    "currency": "LBP",
+    "items": [
+      {
+        "id": 1,
+        "name": "Chicken Shish Tawook",
+        "description": "Grilled chicken pieces with vegetables and rice",
+        "price": 45000,
+        "image": "https://images.unsplash.com/photo-1633945274417-b5a8ac5e2a2a?w=300&h=200&fit=crop",
+        "dietary_preferences": ["spicy"]
+      },
+      {
+        "id": 2,
+        "name": "Fattoush Salad",
+        "description": "Traditional Lebanese salad with fresh vegetables",
+        "price": 25000,
+        "image": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300&h=200&fit=crop",
+        "dietary_preferences": ["vegetarian", "gluten-free"]
+      },
+      {
+        "id": 3,
+        "name": "Hummus with Tahini",
+        "description": "Creamy hummus with tahini and olive oil",
+        "price": 18000,
+        "image": "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=300&h=200&fit=crop",
+        "dietary_preferences": ["vegetarian"]
+      }
+    ],
+    "dietary": {
+      "vegetarian": "Vegetarian",
+      "spicy": "Spicy",
+      "gluten-free": "Gluten-Free"
+    }
   },
   "cta": {
     "title": "Get Started with Digital Restaurant Platform",

@@ -7,42 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { VscFlame } from "@/components/icons/VscFlame";
 import { VscVm } from "@/components/icons/VscVm";
 
-const demoItems = [
-  {
-    id: 1,
-    name: "شيش طاووق",
-    nameEn: "Chicken Shish Tawook",
-    description: "قطع دجاج مشوية مع الخضار والأرز",
-    descriptionEn: "Grilled chicken pieces with vegetables and rice",
-    price: 45000,
-    image:
-      "https://images.unsplash.com/photo-1633945274417-b5a8ac5e2a2a?w=300&h=200&fit=crop",
-    dietary_preferences: ['spicy'],
-  },
-  {
-    id: 2,
-    name: "فتوش",
-    nameEn: "Fattoush Salad",
-    description: "سلطة لبنانية تقليدية مع الخضار الطازجة",
-    descriptionEn: "Traditional Lebanese salad with fresh vegetables",
-    price: 25000,
-    image:
-      "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300&h=200&fit=crop",
-    dietary_preferences: ['vegetarian', 'gluten-free'],
-  },
-  {
-    id: 3,
-    name: "حمص بالطحينة",
-    nameEn: "Hummus with Tahini",
-    description: "حمص كريمي مع طحينة وزيت الزيتون",
-    descriptionEn: "Creamy hummus with tahini and olive oil",
-    price: 18000,
-    image:
-      "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=300&h=200&fit=crop",
-    dietary_preferences: ['vegetarian'],
-  },
-];
-
 /**
  * An interactive demonstration of the menu and ordering system.
  * It displays a list of demo menu items, allows users to add/remove them from a cart,
@@ -52,7 +16,8 @@ const demoItems = [
  * @returns {JSX.Element} The rendered menu demo section.
  */
 const MenuDemo = (): JSX.Element => {
-  const { t, isRTL } = useTranslation();
+  const { t } = useTranslation();
+  const demoItems = t("menuDemo.items", { returnObjects: true });
   const [cart, setCart] = useState<
     { id: number; name: string; price: number; quantity: number }[]
   >([]);
@@ -73,7 +38,7 @@ const MenuDemo = (): JSX.Element => {
           ...prevCart,
           {
             id: item.id,
-            name: isRTL ? item.name : item.nameEn,
+            name: item.name,
             price: item.price,
             quantity: 1,
           },
@@ -122,11 +87,7 @@ const MenuDemo = (): JSX.Element => {
   };
 
   return (
-    <section
-      id="demo"
-      className="py-16 px-4 bg-secondary/10"
-      dir={isRTL ? "rtl" : "ltr"}
-    >
+    <section id="demo" className="py-16 px-4 bg-secondary/10">
       <div className="container mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">{t("menuDemo.title")}</h2>
@@ -138,30 +99,43 @@ const MenuDemo = (): JSX.Element => {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             {demoItems.map((item) => (
-              <Card
+              <motion.div
                 key={item.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                whileHover={{ scale: 1.02 }}
                 className="overflow-hidden shadow-card transition-all duration-300 hover:shadow-lg flex flex-col md:flex-row md:items-center"
               >
                 <img
                   src={item.image}
-                  alt={isRTL ? item.name : item.nameEn}
+                  alt={item.name}
                   className="w-full h-40 md:w-32 md:h-32 object-cover"
                 />
                 <CardContent className="p-4 flex flex-col flex-grow justify-between">
                   <div>
                     <h4 className="font-bold text-lg text-foreground">
-                      {isRTL ? item.name : item.nameEn}
+                      {item.name}
                     </h4>
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                      {isRTL ? item.description : item.descriptionEn}
+                      {item.description}
                     </p>
                     <div className="flex items-center gap-2 mt-2">
-                      {item.dietary_preferences?.includes('vegetarian') && (
-                        <VscVm className="h-5 w-5 text-green-600" />
-                      )}
-                      {item.dietary_preferences?.includes('spicy') && (
-                        <VscFlame className="h-5 w-5 text-red-600" />
-                      )}
+                      {item.dietary_preferences?.map((pref) => (
+                        <div
+                          key={pref}
+                          className="flex items-center gap-1 text-xs bg-muted/50 px-2 py-1 rounded-full"
+                        >
+                          {pref === "vegetarian" && (
+                            <VscVm className="h-4 w-4 text-green-600" />
+                          )}
+                          {pref === "spicy" && (
+                            <VscFlame className="h-4 w-4 text-red-600" />
+                          )}
+                          <span>{t(`menuDemo.dietary.${pref}`)}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                   <div className="flex items-center justify-between mt-4">
@@ -169,21 +143,34 @@ const MenuDemo = (): JSX.Element => {
                       {item.price.toLocaleString()} {t("currency")}
                     </p>
                     <div className="flex items-center gap-2">
-                      {getQuantity(item.id) > 0 && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => removeFromCart(item.id)}
-                            className="h-9 w-9 p-0 rounded-full"
-                          >
-                            <Minus size={16} />
-                          </Button>
-                          <span className="text-base font-bold min-w-[2rem] text-center">
-                            {getQuantity(item.id)}
-                          </span>
-                        </>
-                      )}
+                      <AnimatePresence>
+                        {getQuantity(item.id) > 0 && (
+                          <>
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.5 }}
+                            >
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => removeFromCart(item.id)}
+                                className="h-9 w-9 p-0 rounded-full"
+                              >
+                                <Minus size={16} />
+                              </Button>
+                            </motion.div>
+                            <motion.span
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 10 }}
+                              className="text-base font-bold min-w-[2rem] text-center"
+                            >
+                              {getQuantity(item.id)}
+                            </motion.span>
+                          </>
+                        )}
+                      </AnimatePresence>
                       <Button
                         size="sm"
                         onClick={() => addToCart(item)}
@@ -194,18 +181,18 @@ const MenuDemo = (): JSX.Element => {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </motion.div>
             ))}
           </div>
 
           <div className="lg:col-span-1">
-            <Card className="sticky top-24">
+            <Card className="sticky top-24 shadow-lg border-t-4 border-primary">
               <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <ShoppingCart size={20} /> {t("menuDemo.cartTitle")}
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-primary">
+                  <ShoppingCart size={22} /> {t("menuDemo.cartTitle")}
                 </h3>
-                <AnimatePresence>
-                  <motion.div layout className="space-y-3">
+                <div className="max-h-60 overflow-y-auto pr-2">
+                  <AnimatePresence>
                     {cart.map((item) => (
                       <motion.div
                         key={item.id}
@@ -213,19 +200,19 @@ const MenuDemo = (): JSX.Element => {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex justify-between items-center text-sm"
+                        className="flex justify-between items-center text-sm mb-3"
                       >
-                        <span>
+                        <span className="font-medium">
                           {item.name} x{item.quantity}
                         </span>
-                        <span className="font-medium">
+                        <span className="font-semibold">
                           {(item.price * item.quantity).toLocaleString()}{" "}
                           {t("currency")}
                         </span>
                       </motion.div>
                     ))}
-                  </motion.div>
-                </AnimatePresence>
+                  </AnimatePresence>
+                </div>
                 {cart.length === 0 && (
                   <p className="text-muted-foreground text-center py-4">
                     {t("menuDemo.cartEmpty")}

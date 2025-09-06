@@ -8,7 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Check } from "lucide-react";
-import AnimatedSection from "@/components/AnimatedSection";
+import StaggeredFadeIn from "@/components/StaggeredFadeIn";
 import { Link } from "react-router-dom";
 
 /**
@@ -64,22 +64,29 @@ const Pricing = (): JSX.Element => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pt-24" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div
+      className="min-h-screen bg-background pt-24"
+      dir={isRTL ? "rtl" : "ltr"}
+    >
       <div className="container mx-auto px-4">
-        <AnimatedSection>
-          <h1 className="text-4xl font-bold text-center mb-4">{t('pricing.title')}</h1>
+        <StaggeredFadeIn>
+          <h1 className="text-4xl font-bold text-center mb-4">
+            {t("pricing.title")}
+          </h1>
           <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-12">
-            {t('pricing.description')}
+            {t("pricing.description")}
           </p>
-        </AnimatedSection>
+        </StaggeredFadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
-            <AnimatedSection key={plan.name} className={`transition-all duration-500 delay-${index * 200}`}>
+            <StaggeredFadeIn key={plan.name} delay={index * 0.2}>
               <Card className="flex flex-col h-full">
                 <CardHeader>
                   <CardTitle>{plan.name}</CardTitle>
-                  <CardDescription className="text-4xl font-bold">{plan.price}</CardDescription>
+                  <CardDescription className="text-4xl font-bold">
+                    {plan.price}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <ul className="space-y-4">
@@ -97,7 +104,7 @@ const Pricing = (): JSX.Element => {
                   </Link>
                 </div>
               </Card>
-            </AnimatedSection>
+            </StaggeredFadeIn>
           ))}
         </div>
       </div>

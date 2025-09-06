@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import AnimatedSection from "@/components/AnimatedSection";
+import StaggeredFadeIn from "@/components/StaggeredFadeIn";
 import { Github, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react";
 
 const formSchema = z.object({
@@ -66,32 +66,43 @@ const Contact = (): JSX.Element => {
   };
 
   return (
-    <div className="min-h-screen bg-background pt-24" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div
+      className="min-h-screen bg-background pt-24"
+      dir={isRTL ? "rtl" : "ltr"}
+    >
       <div className="container mx-auto px-4">
-        <AnimatedSection>
-          <h1 className="text-4xl font-bold text-center mb-4">{t('contact.title')}</h1>
+        <StaggeredFadeIn>
+          <h1 className="text-4xl font-bold text-center mb-4">
+            {t("contact.title")}
+          </h1>
           <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-12">
-            {t('contact.description')}
+            {t("contact.description")}
           </p>
-        </AnimatedSection>
+        </StaggeredFadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <AnimatedSection>
+          <StaggeredFadeIn>
             <Card>
               <CardHeader>
-                <CardTitle>{t('contact.formTitle')}</CardTitle>
+                <CardTitle>{t("contact.formTitle")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-4"
+                  >
                     <FormField
                       control={form.control}
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('contact.nameLabel')}</FormLabel>
+                          <FormLabel>{t("contact.nameLabel")}</FormLabel>
                           <FormControl>
-                            <Input placeholder={t('contact.namePlaceholder')} {...field} />
+                            <Input
+                              placeholder={t("contact.namePlaceholder")}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -102,9 +113,13 @@ const Contact = (): JSX.Element => {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('contact.emailLabel')}</FormLabel>
+                          <FormLabel>{t("contact.emailLabel")}</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder={t('contact.emailPlaceholder')} {...field} />
+                            <Input
+                              type="email"
+                              placeholder={t("contact.emailPlaceholder")}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -115,9 +130,12 @@ const Contact = (): JSX.Element => {
                       name="subject"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('contact.subjectLabel')}</FormLabel>
+                          <FormLabel>{t("contact.subjectLabel")}</FormLabel>
                           <FormControl>
-                            <Input placeholder={t('contact.subjectPlaceholder')} {...field} />
+                            <Input
+                              placeholder={t("contact.subjectPlaceholder")}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -128,24 +146,33 @@ const Contact = (): JSX.Element => {
                       name="message"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('contact.messageLabel')}</FormLabel>
+                          <FormLabel>{t("contact.messageLabel")}</FormLabel>
                           <FormControl>
-                            <Textarea placeholder={t('contact.messagePlaceholder')} {...field} />
+                            <Textarea
+                              placeholder={t("contact.messagePlaceholder")}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                      {form.formState.isSubmitting ? "Sending..." : t('contact.submitButton')}
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={form.formState.isSubmitting}
+                    >
+                      {form.formState.isSubmitting
+                        ? "Sending..."
+                        : t("contact.submitButton")}
                     </Button>
                   </form>
                 </Form>
               </CardContent>
             </Card>
-          </AnimatedSection>
+          </StaggeredFadeIn>
 
-          <AnimatedSection>
+          <StaggeredFadeIn>
             <Card>
               <CardHeader>
                 <CardTitle>Our Information</CardTitle>
@@ -164,13 +191,19 @@ const Contact = (): JSX.Element => {
                   <span>123 Main St, Anytown, USA</span>
                 </div>
                 <div className="flex space-x-4 pt-4">
-                  <a href="#" className="text-muted-foreground hover:text-primary"><Twitter /></a>
-                  <a href="#" className="text-muted-foreground hover:text-primary"><Linkedin /></a>
-                  <a href="#" className="text-muted-foreground hover:text-primary"><Github /></a>
+                  <a href="#" className="text-muted-foreground hover:text-primary">
+                    <Twitter />
+                  </a>
+                  <a href="#" className="text-muted-foreground hover:text-primary">
+                    <Linkedin />
+                  </a>
+                  <a href="#" className="text-muted-foreground hover:text-primary">
+                    <Github />
+                  </a>
                 </div>
               </CardContent>
             </Card>
-          </AnimatedSection>
+          </StaggeredFadeIn>
         </div>
       </div>
     </div>
