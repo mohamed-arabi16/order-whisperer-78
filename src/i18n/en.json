@@ -35,9 +35,15 @@
     "success": "Success",
     "error": "Error",
     "genericError": "An error occurred, please try again",
-    "save": "Save",
     "saving": "Saving...",
-    "cancel": "Cancel"
+    "unsavedChanges": "Unsaved Changes",
+    "unsavedChangesDescription": "You have unsaved changes. Are you sure you want to leave?",
+    "stay": "Stay",
+    "leave": "Leave",
+    "export": "Export",
+    "view": "View",
+    "error.genericTitle": "Something went wrong",
+    "error.genericMessage": "An unexpected error occurred. Please try again later."
   },
   "header": {
     "brand": "RestaurantOS",
@@ -63,7 +69,19 @@
     "welcomeBack": "Welcome back",
     "createAccount": "Create a new account",
     "alreadyHaveAccount": "Already have an account?",
-    "dontHaveAccount": "Don't have an account?"
+    "dontHaveAccount": "Don't have an account?",
+    "title": "Welcome to RestaurantOS",
+    "subtitle": "Sign in or create an account to manage your restaurant",
+    "signInTab": "Sign In",
+    "signUpTab": "Sign Up",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "signingInButton": "Signing In...",
+    "signInButton": "Sign In",
+    "fullNameLabel": "Full Name",
+    "fullNamePlaceholder": "John Doe",
+    "signingUpButton": "Signing Up...",
+    "signUpButton": "Sign Up"
   },
   "dashboard": {
     "welcome": "Welcome",
@@ -80,12 +98,28 @@
       "paidPlans": "Paid Plans",
       "outOfTotal": "out of {{total}} restaurants",
       "activeAccounts": "Active Accounts",
-      "activityPercentage": "{{percentage}}% activity rate"
+      "activityPercentage": "{{percentage}}% activity rate",
+      "analytics": "View Analytics",
+      "analyticsDescription": "Deep dive into platform analytics"
     },
     "tenantsManagement": {
       "title": "Restaurant Management",
       "description": "Create and manage restaurant accounts on the platform",
-      "addButton": "Add New Restaurant"
+      "addButton": "Add New Restaurant",
+      "exportAriaLabel": "Export tenant data to CSV"
+    },
+    "filters": {
+      "searchPlaceholder": "Search by restaurant name or owner...",
+      "status": {
+        "placeholder": "Filter by status",
+        "all": "All Statuses",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "plan": {
+        "placeholder": "Filter by plan",
+        "all": "All Plans"
+      }
     },
     "noTenants": {
       "title": "No restaurants registered yet",
@@ -159,7 +193,11 @@
       "copySuccessTitle": "Copied",
       "copySuccessDescription": "Link copied to clipboard",
       "copyErrorTitle": "Error",
-      "copyErrorDescription": "Failed to copy link"
+      "copyErrorDescription": "Failed to copy link",
+      "feedbackErrorTitle": "Error fetching feedback",
+      "feedbackErrorDescription": "Could not load feedback. Please try again later.",
+      "noTenantTitle": "Restaurant Not Found",
+      "noTenantDescription": "No restaurant is associated with your account."
     }
   },
   "menu": {
@@ -213,10 +251,16 @@
     "phoneNotAvailable": "Phone number is not available",
     "checkLink": "Please check the link and try again",
     "restaurantLogo": "Restaurant Logo",
-    "menuItemImage": "Menu Item Image"
+    "menuItemImage": "Menu Item Image",
+    "orderType.whatsapp": "WhatsApp Order",
+    "toast.orderSuccess": "Order sent via WhatsApp!",
+    "errors.phoneNotAvailable": "Restaurant phone number is not available for orders.",
+    "errors.invalidPhone": "Restaurant phone number is invalid.",
+    "errors.orderProcessing": "Error processing your order. Please try again."
   },
   "branding": {
     "title": "Branding",
+    "description": "Customize your restaurant's logo and colors",
     "uploadLogo": "Upload Logo",
     "primaryColor": "Primary Color",
     "secondaryColor": "Secondary Color",
@@ -280,6 +324,20 @@
         "empty": "Cart is empty",
         "send": "Send via WhatsApp"
       }
+    },
+    "logoPosition": {
+      "title": "Logo Position",
+      "description": "Choose where the logo appears on the menu header.",
+      "left": "Left",
+      "center": "Center",
+      "right": "Right"
+    },
+    "socialMedia": {
+      "title": "Social Media Links",
+      "description": "Add links to your social media pages.",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "twitter": "Twitter"
     }
   },
   "qr": {

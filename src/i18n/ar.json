@@ -35,9 +35,15 @@
     "success": "نجح",
     "error": "خطأ",
     "genericError": "حدث خطأ، يرجى المحاولة مرة أخرى",
-    "save": "حفظ",
     "saving": "جاري الحفظ...",
-    "cancel": "إلغاء"
+    "unsavedChanges": "تغييرات غير محفوظة",
+    "unsavedChangesDescription": "لديك تغييرات غير محفوظة. هل أنت متأكد من أنك تريد المغادرة؟",
+    "stay": "البقاء",
+    "leave": "المغادرة",
+    "export": "تصدير",
+    "view": "عرض",
+    "error.genericTitle": "حدث خطأ ما",
+    "error.genericMessage": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى في وقت لاحق."
   },
   "header": {
     "brand": "RestaurantOS",
@@ -63,7 +69,19 @@
     "welcomeBack": "مرحباً بعودتك",
     "createAccount": "إنشاء حساب جديد",
     "alreadyHaveAccount": "لديك حساب بالفعل؟",
-    "dontHaveAccount": "ليس لديك حساب؟"
+    "dontHaveAccount": "ليس لديك حساب؟",
+    "title": "مرحبا بك في RestaurantOS",
+    "subtitle": "سجل الدخول أو أنشئ حسابًا لإدارة مطعمك",
+    "signInTab": "تسجيل الدخول",
+    "signUpTab": "إنشاء حساب",
+    "emailLabel": "البريد الإلكتروني",
+    "passwordLabel": "كلمة المرور",
+    "signingInButton": "جاري تسجيل الدخول...",
+    "signInButton": "تسجيل الدخول",
+    "fullNameLabel": "الاسم الكامل",
+    "fullNamePlaceholder": "جون دو",
+    "signingUpButton": "جاري إنشاء الحساب...",
+    "signUpButton": "إنشاء حساب"
   },
   "dashboard": {
     "welcome": "مرحباً",
@@ -80,12 +98,28 @@
       "paidPlans": "الخطط المدفوعة",
       "outOfTotal": "من أصل {{total}} مطعم",
       "activeAccounts": "الحسابات النشطة",
-      "activityPercentage": "%{{percentage}} نسبة النشاط"
+      "activityPercentage": "%{{percentage}} نسبة النشاط",
+      "analytics": "عرض التحليلات",
+      "analyticsDescription": "الغوص في تحليلات المنصة"
     },
     "tenantsManagement": {
       "title": "إدارة المطاعم",
       "description": "إنشاء وإدارة حسابات المطاعم على المنصة",
-      "addButton": "إضافة مطعم جديد"
+      "addButton": "إضافة مطعم جديد",
+      "exportAriaLabel": "تصدير بيانات المستأجرين إلى CSV"
+    },
+    "filters": {
+      "searchPlaceholder": "ابحث عن طريق اسم المطعم أو المالك ...",
+      "status": {
+        "placeholder": "تصفية حسب الحالة",
+        "all": "جميع الحالات",
+        "active": "نشط",
+        "inactive": "غير نشط"
+      },
+      "plan": {
+        "placeholder": "تصفية حسب الخطة",
+        "all": "جميع الخطط"
+      }
     },
     "noTenants": {
       "title": "لا توجد مطاعم مسجلة بعد",
@@ -159,7 +193,11 @@
       "copySuccessTitle": "تم النسخ",
       "copySuccessDescription": "تم نسخ الرابط إلى الحافظة",
       "copyErrorTitle": "خطأ",
-      "copyErrorDescription": "لم يتم نسخ الرابط"
+      "copyErrorDescription": "لم يتم نسخ الرابط",
+      "feedbackErrorTitle": "خطأ في جلب التقييمات",
+      "feedbackErrorDescription": "لا يمكن تحميل التقييمات. يرجى المحاولة مرة أخرى في وقت لاحق.",
+      "noTenantTitle": "المطعم غير موجود",
+      "noTenantDescription": "لا يوجد مطعم مرتبط بحسابك."
     }
   },
   "menu": {
@@ -213,10 +251,16 @@
     "phoneNotAvailable": "رقم الهاتف غير متوفر",
     "checkLink": "يرجى التحقق من الرابط والمحاولة مرة أخرى",
     "restaurantLogo": "شعار المطعم",
-    "menuItemImage": "صورة عنصر القائمة"
+    "menuItemImage": "صورة عنصر القائمة",
+    "orderType.whatsapp": "طلب واتساب",
+    "toast.orderSuccess": "تم إرسال الطلب عبر واتساب!",
+    "errors.phoneNotAvailable": "رقم هاتف المطعم غير متاح للطلبات.",
+    "errors.invalidPhone": "رقم هاتف المطعم غير صالح.",
+    "errors.orderProcessing": "خطأ في معالجة طلبك. يرجى المحاولة مرة أخرى."
   },
   "branding": {
     "title": "العلامة التجارية",
+    "description": "خصص شعار وألوان المطعم",
     "uploadLogo": "رفع الشعار",
     "primaryColor": "اللون الأساسي",
     "secondaryColor": "اللون الثانوي",
@@ -280,6 +324,20 @@
         "empty": "السلة فارغة",
         "send": "إرسال عبر واتساب"
       }
+    },
+    "logoPosition": {
+      "title": "موضع الشعار",
+      "description": "اختر مكان ظهور الشعار في رأس القائمة.",
+      "left": "يسار",
+      "center": "وسط",
+      "right": "يمين"
+    },
+    "socialMedia": {
+      "title": "روابط التواصل الاجتماعي",
+      "description": "أضف روابط صفحات التواصل الاجتماعي الخاصة بك.",
+      "facebook": "فيسبوك",
+      "instagram": "انستغرام",
+      "twitter": "تويتر"
     }
   },
   "qr": {
