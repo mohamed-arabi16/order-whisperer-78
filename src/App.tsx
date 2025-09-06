@@ -36,10 +36,10 @@ const App = (): JSX.Element => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
+          <BrowserRouter>
+            <ErrorBoundary>
               <Header />
-              <ErrorBoundary>
-                <Routes>
+              <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/dashboard" element={<Dashboard />} />
