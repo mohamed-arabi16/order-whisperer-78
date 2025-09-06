@@ -40,13 +40,23 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({
   const [language, setLanguage] = useState<Language>("ar"); // Default to Arabic
 
   useEffect(() => {
-    // Load saved language from localStorage
-    const savedLanguage = localStorage.getItem("language") as Language;
-    if (savedLanguage && (savedLanguage === "ar" || savedLanguage === "en")) {
-      setLanguage(savedLanguage);
-    }
+    // Priority: URL query parameter > localStorage > default
+    const urlParams = new URLSearchParams(window.location.search);
+    const langFromUrl = urlParams.get("lang") as Language;
 
-    // Set document direction and lang attribute
+    if (langFromUrl && ["ar", "en"].includes(langFromUrl)) {
+      setLanguage(langFromUrl);
+      localStorage.setItem("language", langFromUrl);
+    } else {
+      const savedLanguage = localStorage.getItem("language") as Language;
+      if (savedLanguage && ["ar", "en"].includes(savedLanguage)) {
+        setLanguage(savedLanguage);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    // This effect runs whenever the language changes
     document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = language;
 
