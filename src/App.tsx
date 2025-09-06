@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import Header from "./components/Header";
 import Pricing from "./pages/Pricing";
 import Contact from "./pages/Contact";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -37,20 +38,22 @@ const App = (): JSX.Element => (
             <Sonner />
             <BrowserRouter>
               <Header />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/menu-management" element={<MenuManagement />} />
-                <Route path="/branding" element={<RestaurantBranding />} />
-                <Route path="/qr-code" element={<QRCodeGenerator />} />
-                <Route path="/menu/:slug" element={<PublicMenu />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/contact" element={<Contact />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <ErrorBoundary>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/menu-management" element={<MenuManagement />} />
+                  <Route path="/branding" element={<RestaurantBranding />} />
+                  <Route path="/qr-code" element={<QRCodeGenerator />} />
+                  <Route path="/menu/:slug" element={<PublicMenu />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/contact" element={<Contact />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </ErrorBoundary>
             </BrowserRouter>
           </TooltipProvider>
         </ThemeProvider>

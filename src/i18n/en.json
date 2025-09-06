@@ -146,6 +146,11 @@
       "fetchTenantsDescription": "Could not load the list of restaurants. Please check your connection and try again.",
       "bulkActionTitle": "Bulk Action Failed",
       "bulkActionDescription": "An error occurred while processing the bulk action. Please try again."
+    },
+    "pagination": {
+      "previous": "Go to previous page",
+      "next": "Go to next page",
+      "page": "Go to page {{page}}"
     }
   },
   "restaurant": {
