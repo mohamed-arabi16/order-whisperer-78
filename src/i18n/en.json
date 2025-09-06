@@ -75,12 +75,12 @@
     "subtitle": "Sign in or create an account to manage your restaurant",
     "signInTab": "Sign In",
     "signUpTab": "Sign Up",
-    "emailLabel": "Email",
+    "emailLabel": "Email Address",
     "passwordLabel": "Password",
     "signingInButton": "Signing In...",
     "signInButton": "Sign In",
     "fullNameLabel": "Full Name",
-    "fullNamePlaceholder": "John Doe",
+    "fullNamePlaceholder": "e.g. John Doe",
     "signingUpButton": "Signing Up...",
     "signUpButton": "Sign Up"
   },
@@ -187,6 +187,19 @@
         "title": "QR Code",
         "description": "Download and print the QR code for the menu",
         "button": "Generate QR Code"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "View reports and sales analytics",
+        "button": "View Analytics"
+      }
+    },
+    "feedback": {
+      "title": "Feedback",
+      "description": "Review customer feedback and ratings",
+      "noFeedback": {
+        "title": "No Feedback Yet",
+        "description": "Customer feedback will appear here once submitted."
       }
     },
     "gettingStarted": {

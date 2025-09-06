@@ -79,7 +79,7 @@
     "signingInButton": "جاري تسجيل الدخول...",
     "signInButton": "تسجيل الدخول",
     "fullNameLabel": "الاسم الكامل",
-    "fullNamePlaceholder": "جون دو",
+    "fullNamePlaceholder": "مثال: جون دو",
     "signingUpButton": "جاري إنشاء الحساب...",
     "signUpButton": "إنشاء حساب"
   },
@@ -166,6 +166,19 @@
         "title": "رمز QR",
         "description": "تحميل وطباعة رمز QR للقائمة",
         "button": "إنشاء رمز QR"
+      },
+      "analytics": {
+        "title": "التحليلات",
+        "description": "عرض التقارير وتحليلات المبيعات",
+        "button": "عرض التحليلات"
+      }
+    },
+    "feedback": {
+      "title": "التقييمات",
+      "description": "مراجعة تقييمات العملاء وملاحظاتهم",
+      "noFeedback": {
+        "title": "لا توجد تقييمات بعد",
+        "description": "ستظهر تقييمات العملاء هنا عند إرسالها."
       }
     },
     "gettingStarted": {
