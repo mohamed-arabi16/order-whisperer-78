@@ -8,10 +8,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Menu, QrCode, Palette, Link, Copy, LineChart } from "lucide-react";
+import { Building2, Menu, QrCode, Palette, Link, Copy, LineChart, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -39,11 +40,44 @@ const RestaurantDashboard = (): JSX.Element => {
   const { t, isRTL } = useTranslation();
   const { toast } = useToast();
   const [tenant, setTenant] = useState<Tenant | null>(null);
+  const [feedback, setFeedback] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuUrl, setMenuUrl] = useState('');
 
   useEffect(() => {
-    fetchTenant();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const { data: tenantId, error: rpcError } = await supabase.rpc('get_user_tenant');
+        if (rpcError) throw rpcError;
+
+        if (tenantId) {
+          const { data: tenantData, error: tenantError } = await supabase
+            .from('tenants')
+            .select('*')
+            .eq('id', tenantId)
+            .single();
+          if (tenantError) throw tenantError;
+          setTenant(tenantData);
+
+          const { data: feedbackData, error: feedbackError } = await supabase
+            .from('feedback')
+            .select('*')
+            .eq('tenant_id', tenantId)
+            .order('created_at', { ascending: false });
+          if (feedbackError) throw feedbackError;
+          setFeedback(feedbackData || []);
+        } else {
+          console.error('No tenant found for this user.');
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -328,10 +362,16 @@ const RestaurantDashboard = (): JSX.Element => {
           </Card>
         </div>
 
-        {/* Getting Started Guide */}
-        <Card className="shadow-card border-primary/20">
-          <CardHeader>
-            <CardTitle className="text-primary">{t('restaurant.gettingStarted.title')}</CardTitle>
+        {/* Getting Started Guide / Feedback */}
+        <Tabs defaultValue="getting-started">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="getting-started">{t('restaurant.gettingStarted.title')}</TabsTrigger>
+            <TabsTrigger value="feedback">{t('restaurant.feedback.title')}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="getting-started">
+            <Card className="shadow-card border-primary/20">
+              <CardHeader>
+                <CardTitle className="text-primary">{t('restaurant.gettingStarted.title')}</CardTitle>
             <CardDescription>
               {t('restaurant.gettingStarted.description')}
             </CardDescription>
@@ -386,6 +426,48 @@ const RestaurantDashboard = (): JSX.Element => {
             </div>
           </CardContent>
         </Card>
+          </TabsContent>
+          <TabsContent value="feedback">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('restaurant.feedback.title')}</CardTitle>
+                <CardDescription>{t('restaurant.feedback.description')}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {feedback.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">{t('restaurant.feedback.noFeedback.title')}</h3>
+                    <p className="text-muted-foreground">
+                      {t('restaurant.feedback.noFeedback.description')}
+                    </p>
+                  </div>
+                ) : (
+                  feedback.map((fb) => (
+                    <div key={fb.id} className="border-b pb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-5 w-5 ${
+                                i < fb.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(fb.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      {fb.comment && <p className="mt-2 text-sm">{fb.comment}</p>}
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

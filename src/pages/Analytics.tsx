@@ -20,11 +20,18 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
+import { addDays } from "date-fns";
 
 const Analytics = () => {
   const { profile, isAdmin, isRestaurantOwner } = useAuth();
   const [loading, setLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState<any>({});
+  const [date, setDate] = React.useState<DateRange | undefined>({
+    from: addDays(new Date(), -7),
+    to: new Date(),
+  });
 
   useEffect(() => {
     const fetchAnalyticsData = async () => {
@@ -35,8 +42,8 @@ const Analytics = () => {
         let data: any = {};
         if (isAdmin) {
           const { data: newTenants, error: newTenantsError } = await supabase.rpc(
-            "get_new_tenants_over_time",
-            { time_period_param: "day" }
+            "get_new_tenants_over_time_by_date_range",
+            { start_date_param: date?.from, end_date_param: date?.to }
           );
           if (newTenantsError) throw newTenantsError;
           data.newTenants = newTenants;
@@ -62,11 +69,25 @@ const Analytics = () => {
             data.popularItems = popularItems;
 
             const { data: salesData, error: salesDataError } = await supabase.rpc(
-              "get_sales_data",
-              { tenant_id_param: tenantId, time_period_param: "day" }
+              "get_sales_data_by_date_range",
+              { tenant_id_param: tenantId, start_date_param: date?.from, end_date_param: date?.to }
             );
             if (salesDataError) throw salesDataError;
             data.salesData = salesData;
+
+            const { data: orderBreakdown, error: orderBreakdownError } = await supabase.rpc(
+              "get_order_breakdown_by_type",
+              { tenant_id_param: tenantId, start_date_param: date?.from, end_date_param: date?.to }
+            );
+            if (orderBreakdownError) throw orderBreakdownError;
+            data.orderBreakdown = orderBreakdown;
+
+            const { data: avgOrderValue, error: avgOrderValueError } = await supabase.rpc(
+              "get_average_order_value_over_time",
+              { tenant_id_param: tenantId, start_date_param: date?.from, end_date_param: date?.to }
+            );
+            if (avgOrderValueError) throw avgOrderValueError;
+            data.avgOrderValue = avgOrderValue;
           }
         }
         setAnalyticsData(data);
@@ -103,6 +124,7 @@ const Analytics = () => {
               نظرة شاملة على أداء مطعمك
             </p>
           </div>
+          <DateRangePicker date={date} onDateChange={setDate} />
         </div>
 
         {isAdmin && (
@@ -175,6 +197,45 @@ const Analytics = () => {
                       type="monotone"
                       dataKey="total_sales"
                       stroke="#8884d8"
+                      activeDot={{ r: 8 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Order Breakdown by Type</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={analyticsData.orderBreakdown}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="order_type" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="order_count" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Average Order Value Over Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={analyticsData.avgOrderValue}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date_trunc" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="avg_order_value"
+                      stroke="#82ca9d"
                       activeDot={{ r: 8 }}
                     />
                   </LineChart>

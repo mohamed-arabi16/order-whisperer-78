@@ -24,6 +24,12 @@ interface Tenant {
   name: string;
   logo_url?: string;
   primary_color?: string;
+  logo_position?: 'left' | 'center' | 'right';
+  social_media_links?: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+  };
 }
 
 /**
@@ -58,6 +64,12 @@ const RestaurantBranding = (): JSX.Element => {
   const [selectedColor, setSelectedColor] = useState('#2563eb');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
+  const [logoPosition, setLogoPosition] = useState<'left' | 'center' | 'right'>('left');
+  const [socialMediaLinks, setSocialMediaLinks] = useState({
+    facebook: '',
+    instagram: '',
+    twitter: '',
+  });
 
   useEffect(() => {
     fetchTenantData();
@@ -81,6 +93,8 @@ const RestaurantBranding = (): JSX.Element => {
         if (data) {
           setTenant(data);
           setSelectedColor(data.primary_color || '#2563eb');
+          setLogoPosition(data.logo_position || 'left');
+          setSocialMediaLinks(data.social_media_links || { facebook: '', instagram: '', twitter: '' });
           if (data.logo_url) {
             setLogoPreview(data.logo_url);
           }
@@ -169,7 +183,9 @@ const RestaurantBranding = (): JSX.Element => {
         .from('tenants')
         .update({
           logo_url: logoUrl,
-          primary_color: selectedColor
+          primary_color: selectedColor,
+          logo_position: logoPosition,
+          social_media_links: socialMediaLinks,
         })
         .eq('id', tenant.id);
 
@@ -178,7 +194,9 @@ const RestaurantBranding = (): JSX.Element => {
       setTenant(prev => prev ? {
         ...prev,
         logo_url: logoUrl,
-        primary_color: selectedColor
+        primary_color: selectedColor,
+        logo_position: logoPosition,
+        social_media_links: socialMediaLinks,
       } : null);
 
       toast({
@@ -364,6 +382,73 @@ const RestaurantBranding = (): JSX.Element => {
                     className="w-8 h-8 rounded border"
                     style={{ backgroundColor: selectedColor }}
                   ></div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Logo Position */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>{t('branding.logoPosition.title')}</CardTitle>
+                <CardDescription>{t('branding.logoPosition.description')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-2">
+                  <Button
+                    variant={logoPosition === 'left' ? 'default' : 'outline'}
+                    onClick={() => setLogoPosition('left')}
+                  >
+                    {t('branding.logoPosition.left')}
+                  </Button>
+                  <Button
+                    variant={logoPosition === 'center' ? 'default' : 'outline'}
+                    onClick={() => setLogoPosition('center')}
+                  >
+                    {t('branding.logoPosition.center')}
+                  </Button>
+                  <Button
+                    variant={logoPosition === 'right' ? 'default' : 'outline'}
+                    onClick={() => setLogoPosition('right')}
+                  >
+                    {t('branding.logoPosition.right')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Social Media Links */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>{t('branding.socialMedia.title')}</CardTitle>
+                <CardDescription>{t('branding.socialMedia.description')}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="facebook-link">{t('branding.socialMedia.facebook')}</Label>
+                  <Input
+                    id="facebook-link"
+                    placeholder="https://facebook.com/your-page"
+                    value={socialMediaLinks.facebook}
+                    onChange={(e) => setSocialMediaLinks(prev => ({ ...prev, facebook: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="instagram-link">{t('branding.socialMedia.instagram')}</Label>
+                  <Input
+                    id="instagram-link"
+                    placeholder="https://instagram.com/your-profile"
+                    value={socialMediaLinks.instagram}
+                    onChange={(e) => setSocialMediaLinks(prev => ({ ...prev, instagram: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="twitter-link">{t('branding.socialMedia.twitter')}</Label>
+                  <Input
+                    id="twitter-link"
+                    placeholder="https://twitter.com/your-handle"
+                    value={socialMediaLinks.twitter}
+                    onChange={(e) => setSocialMediaLinks(prev => ({ ...prev, twitter: e.target.value }))}
+                  />
                 </div>
               </CardContent>
             </Card>
