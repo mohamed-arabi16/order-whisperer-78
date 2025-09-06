@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Menu, QrCode, Palette, Link, Copy, LineChart, MessageSquare } from "lucide-react";
+import { Building2, Menu, QrCode, Palette, Link, Copy, LineChart, MessageSquare, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -66,7 +66,7 @@ const RestaurantDashboard = (): JSX.Element => {
             .eq('tenant_id', tenantId)
             .order('created_at', { ascending: false });
           if (feedbackError) throw feedbackError;
-          setFeedback(feedbackData || []);
+          // setFeedback(feedbackData || []);
         } else {
           console.error('No tenant found for this user.');
         }

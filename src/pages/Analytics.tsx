@@ -28,7 +28,7 @@ const Analytics = () => {
   const { profile, isAdmin, isRestaurantOwner } = useAuth();
   const [loading, setLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState<any>({});
-  const [date, setDate] = React.useState<DateRange | undefined>({
+  const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -7),
     to: new Date(),
   });
@@ -39,11 +39,13 @@ const Analytics = () => {
 
       setLoading(true);
       try {
+        // Use available functions from current schema only
         let data: any = {};
+        
         if (isAdmin) {
           const { data: newTenants, error: newTenantsError } = await supabase.rpc(
-            "get_new_tenants_over_time_by_date_range",
-            { start_date_param: date?.from, end_date_param: date?.to }
+            "get_new_tenants_over_time",
+            { time_period_param: "day" }
           );
           if (newTenantsError) throw newTenantsError;
           data.newTenants = newTenants;
@@ -69,25 +71,11 @@ const Analytics = () => {
             data.popularItems = popularItems;
 
             const { data: salesData, error: salesDataError } = await supabase.rpc(
-              "get_sales_data_by_date_range",
-              { tenant_id_param: tenantId, start_date_param: date?.from, end_date_param: date?.to }
+              "get_sales_data",
+              { tenant_id_param: tenantId, time_period_param: "day" }
             );
             if (salesDataError) throw salesDataError;
             data.salesData = salesData;
-
-            const { data: orderBreakdown, error: orderBreakdownError } = await supabase.rpc(
-              "get_order_breakdown_by_type",
-              { tenant_id_param: tenantId, start_date_param: date?.from, end_date_param: date?.to }
-            );
-            if (orderBreakdownError) throw orderBreakdownError;
-            data.orderBreakdown = orderBreakdown;
-
-            const { data: avgOrderValue, error: avgOrderValueError } = await supabase.rpc(
-              "get_average_order_value_over_time",
-              { tenant_id_param: tenantId, start_date_param: date?.from, end_date_param: date?.to }
-            );
-            if (avgOrderValueError) throw avgOrderValueError;
-            data.avgOrderValue = avgOrderValue;
           }
         }
         setAnalyticsData(data);

@@ -1,64 +1,43 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Plus, Minus, ShoppingCart, Vegan, Flame, Star, Facebook, Instagram, Twitter } from "lucide-react";
-import { generateWhatsAppMessage } from "@/lib/whatsapp"; // WhatsApp integration
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Minus, Plus, ShoppingCart, Star, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
-import { MenuSkeleton } from "@/components/menu/MenuSkeleton";
-import { VscFlame } from "@/components/icons/VscFlame";
-import { VscVm } from "@/components/icons/VscVm";
 
-/**
- * Represents a tenant (restaurant) with public-facing information.
- */
 interface Tenant {
   id: string;
   name: string;
   slug: string;
   phone_number: string | null;
   logo_url: string | null;
-  cover_photo_url: string | null;
   primary_color: string | null;
-  logo_position?: 'left' | 'center' | 'right';
-  social_media_links?: {
-    facebook?: string;
-    instagram?: string;
-    twitter?: string;
-  };
+  is_active: boolean;
+  address: string | null;
 }
 
-/**
- * Represents a menu category.
- */
 interface Category {
   id: string;
   name: string;
   display_order: number;
+  is_active: boolean;
 }
 
-/**
- * Represents a menu item.
- */
 interface MenuItem {
-  id:string;
+  id: string;
   name: string;
   description: string | null;
   price: number;
   image_url: string | null;
   category_id: string;
   is_available: boolean;
-  dietary_preferences: ('vegetarian' | 'spicy' | 'gluten-free')[];
+  display_order: number;
 }
 
-/**
- * Represents an item in the shopping cart.
- */
 interface CartItem {
   id: string;
   name: string;
@@ -66,108 +45,70 @@ interface CartItem {
   quantity: number;
 }
 
-/**
- * A page component that displays a public-facing menu for a restaurant.
- * It allows customers to browse the menu, add items to a cart, and send the order via WhatsApp.
- *
- * @returns {JSX.Element} The rendered public menu page.
- */
 const PublicMenu = (): JSX.Element => {
   const { slug } = useParams();
-  const { toast } = useToast();
-  const { t, isRTL } = useTranslation();
+  const { t } = useTranslation();
+  
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
+  const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [feedbackRating, setFeedbackRating] = useState(0);
-  const [feedbackComment, setFeedbackComment] = useState('');
-  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
-
-  const StarRating = ({ rating, setRating }: { rating: number, setRating: (rating: number) => void }) => {
-    return (
-      <div className="flex items-center gap-1" dir="ltr">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`h-8 w-8 cursor-pointer ${rating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-            onClick={() => setRating(star)}
-          />
-        ))}
-      </div>
-    );
-  };
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedback, setFeedback] = useState({ rating: 0, comment: "" });
 
   useEffect(() => {
-    const fetchMenu = async () => {
+    const fetchMenuData = async () => {
       if (!slug) return;
 
       setLoading(true);
       try {
-        console.log(`Fetching menu for slug: ${slug}`);
-        const { data, error } = await supabase.rpc('get_public_menu_data', { p_slug: slug });
+        // Fetch tenant data
+        const { data: tenantData, error: tenantError } = await supabase
+          .from("tenants")
+          .select("*")
+          .eq("slug", slug)
+          .eq("is_active", true)
+          .single();
 
-        if (error) {
-          console.error('Error calling get_public_menu_data RPC:', error);
-          throw new Error('Failed to fetch menu data.');
+        if (tenantError || !tenantData) {
+          setError("المطعم غير موجود");
+          return;
         }
 
-        if (!data) {
-          console.log(`No data returned for slug: ${slug}. Tenant likely not found or inactive.`);
-          setTenant(null);
-          setCategories([]);
-          setMenuItems([]);
-        } else {
-          console.log('Successfully fetched menu data:', data);
-          setTenant(data.tenant);
-          if (data.tenant.id) {
-            supabase.rpc('log_menu_view', { tenant_id_param: data.tenant.id }).then(({ error }) => {
-              if (error) console.error('Error logging menu view:', error);
-            });
-          }
-          setCategories(data.categories);
-          setMenuItems(data.menu_items);
-          if (data.categories.length > 0) {
-            setActiveCategory(data.categories[0].id);
-          }
-        }
+        setTenant(tenantData);
+        
+        // Fetch categories
+        const { data: categoriesData } = await supabase
+          .from("menu_categories")
+          .select("*")
+          .eq("tenant_id", tenantData.id)
+          .eq("is_active", true)
+          .order("display_order");
+
+        // Fetch menu items
+        const { data: itemsData } = await supabase
+          .from("menu_items")
+          .select("*")
+          .eq("tenant_id", tenantData.id)
+          .order("display_order");
+
+        setCategories(categoriesData || []);
+        setMenuItems(itemsData || []);
+        setActiveCategory(categoriesData?.[0]?.id || null);
+        setError(null);
       } catch (err) {
-        console.error('An unexpected error occurred:', err);
-        toast({
-          title: t('publicMenu.menuLoadErrorTitle'),
-          description: t('publicMenu.menuLoadErrorDescription'),
-          variant: "destructive",
-        });
-        // Ensure we don't show a broken page
-        setTenant(null);
+        console.error("Unexpected error:", err);
+        setError("حدث خطأ غير متوقع");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMenu();
-  }, [slug, t, toast]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const categoryElements = categories.map(c => document.getElementById(`category-${c.id}`));
-      const offset = window.innerHeight * 0.4; // 40% from the top
-
-      for (let i = categoryElements.length - 1; i >= 0; i--) {
-        const el = categoryElements[i];
-        if (el && el.getBoundingClientRect().top <= offset) {
-          setActiveCategory(categories[i].id);
-          break;
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [categories]);
+    fetchMenuData();
+  }, [slug]);
 
   const addToCart = (item: MenuItem) => {
     setCart(prev => {
@@ -201,362 +142,294 @@ const PublicMenu = (): JSX.Element => {
     return cart.find(item => item.id === itemId)?.quantity || 0;
   };
 
-  const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const getTotalItems = () => {
-    return cart.reduce((total, item) => total + item.quantity, 0);
-  };
-
   const formatPrice = (price: number) => {
-    return `${price.toLocaleString()} ${t('common.currency')}`;
+    return new Intl.NumberFormat("ar-LB").format(price) + " ل.ل";
   };
 
   const getItemsForCategory = (categoryId: string) => {
-    return menuItems.filter(item => item.category_id === categoryId);
+    return menuItems.filter(item => item.category_id === categoryId && item.is_available);
   };
 
-  const scrollToCategory = (categoryId: string) => {
-    const element = document.getElementById(`category-${categoryId}`);
-    if (element) {
-      const headerOffset = 80; // Adjust for sticky header/app bar
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+  const totalPrice = useMemo(() => {
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  }, [cart]);
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const handleFeedbackSubmit = async () => {
-    if (feedbackRating === 0) {
-      toast({
-        title: t('publicMenu.feedback.ratingRequiredTitle'),
-        description: t('publicMenu.feedback.ratingRequiredDescription'),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmittingFeedback(true);
+  const handleSubmitFeedback = async () => {
+    if (!tenant) return;
+    
     try {
-      const { error } = await supabase.rpc('submit_feedback', {
-        tenant_id_param: tenant!.id,
-        rating_param: feedbackRating,
-        comment_param: feedbackComment,
-      });
+      const { error } = await supabase
+        .from("feedback")
+        .insert({
+          tenant_id: tenant.id,
+          rating: feedback.rating,
+          comment: feedback.comment,
+        });
 
-      if (error) throw error;
+      if (error) {
+        toast.error("فشل في إرسال التقييم");
+        return;
+      }
 
-      toast({
-        title: t('publicMenu.feedback.successTitle'),
-        description: t('publicMenu.feedback.successDescription'),
-      });
-
-      setFeedbackRating(0);
-      setFeedbackComment('');
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
-      toast({
-        title: t('common.error'),
-        description: t('common.genericError'),
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmittingFeedback(false);
+      toast.success("تم إرسال التقييم بنجاح");
+      setFeedback({ rating: 0, comment: "" });
+      setShowFeedback(false);
+    } catch (err) {
+      console.error("Error submitting feedback:", err);
+      toast.error("حدث خطأ غير متوقع");
     }
   };
 
-  const handleSendToWhatsApp = () => {
+  const handleWhatsAppOrder = async () => {
     if (!tenant?.phone_number) {
-      toast({
-        title: t('publicMenu.restaurantNotFound'),
-        description: t('publicMenu.phoneNotAvailable'),
-        variant: "destructive",
-      });
+      toast.error("رقم الهاتف غير متاح");
       return;
     }
 
-    const message = generateWhatsAppMessage({
-      restaurantName: tenant.name,
-      orderType: orderType === 'delivery' ? t('publicMenu.delivery') : t('publicMenu.pickup'),
-      items: cart,
-      totalPrice: getTotalPrice()
-    });
+    try {
+      // Log order items
+      for (const item of cart) {
+        await supabase.from("order_items").insert({
+          tenant_id: tenant.id,
+          menu_item_id: item.id,
+          quantity: item.quantity,
+        });
+      }
 
-    const whatsappUrl = `https://wa.me/${tenant.phone_number.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+      // Log order
+      await supabase.from("orders").insert({
+        tenant_id: tenant.id,
+        total_price: totalPrice,
+        order_type: "whatsapp",
+      });
 
-    supabase.rpc('log_order_items', { tenant_id_param: tenant.id, items: cart }).then(({ error }) => {
-      if (error) console.error('Error logging order items:', error);
-    });
+      // Generate WhatsApp message
+      let message = `مرحباً! أود طلب الأصناف التالية من ${tenant.name}:\n\n`;
+      
+      cart.forEach(item => {
+        message += `• ${item.name} × ${item.quantity} - ${formatPrice(item.price * item.quantity)}\n`;
+      });
+      
+      message += `\nالمجموع: ${formatPrice(totalPrice)}\n`;
+      message += `شكراً لكم!`;
 
-    supabase.rpc('log_order', { tenant_id_param: tenant.id, total_price_param: getTotalPrice(), order_type_param: orderType }).then(({ error }) => {
-      if (error) console.error('Error logging order:', error);
-    });
+      const whatsappUrl = `https://wa.me/${tenant.phone_number.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+      
+      setCart([]); // Clear cart after sending
+      toast.success("تم إرسال الطلب عبر واتساب");
+    } catch (err) {
+      console.error("Error processing order:", err);
+      toast.error("حدث خطأ أثناء معالجة الطلب");
+    }
   };
 
   if (loading) {
-    return <MenuSkeleton />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          <p className="mt-4 text-muted-foreground">جارٍ تحميل القائمة...</p>
+        </div>
+      </div>
+    );
   }
 
-  if (!tenant) {
+  if (error || !tenant) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">{t('publicMenu.restaurantNotFound')}</h1>
-          <p className="text-muted-foreground">{t('publicMenu.checkLink')}</p>
+          <h1 className="text-2xl font-bold mb-4">المطعم غير موجود</h1>
+          <p className="text-muted-foreground mb-8">يرجى التحقق من الرابط والمحاولة مرة أخرى</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            إعادة المحاولة
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Restaurant Header - Enhanced with Cover Photo */}
-      <header className="relative h-48 md:h-64 w-full">
-        <img
-          src={tenant.cover_photo_url || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&h=400&fit=crop'}
-          alt={t('publicMenu.restaurantCoverImage', 'Restaurant Cover Image')}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-          <div className={`container mx-auto flex items-center gap-4 ${
-            tenant.logo_position === 'center' ? 'justify-center text-center' :
-            tenant.logo_position === 'right' ? 'justify-end' : ''
-          }`}>
+    <div className="min-h-screen bg-background" dir="rtl">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             {tenant.logo_url && (
               <img
                 src={tenant.logo_url}
-                alt={t('publicMenu.restaurantLogo')}
-                className="w-16 h-16 md:w-20 md:h-20 rounded-lg object-cover border-2 border-background shadow-lg"
+                alt="شعار المطعم"
+                className="w-10 h-10 rounded-lg object-cover"
               />
             )}
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white shadow-text">
-                {tenant.name}
-              </h1>
-              <div className="flex gap-2 mt-2">
-                {tenant.social_media_links?.facebook && (
-                  <a href={tenant.social_media_links.facebook} target="_blank" rel="noopener noreferrer">
-                    <Facebook className="h-6 w-6 text-white hover:text-primary" />
-                  </a>
-                )}
-                {tenant.social_media_links?.instagram && (
-                  <a href={tenant.social_media_links.instagram} target="_blank" rel="noopener noreferrer">
-                    <Instagram className="h-6 w-6 text-white hover:text-primary" />
-                  </a>
-                )}
-                {tenant.social_media_links?.twitter && (
-                  <a href={tenant.social_media_links.twitter} target="_blank" rel="noopener noreferrer">
-                    <Twitter className="h-6 w-6 text-white hover:text-primary" />
-                  </a>
-                )}
-              </div>
+              <h1 className="text-lg font-bold">{tenant.name}</h1>
             </div>
           </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowFeedback(true)}
+          >
+            <MessageCircle className="w-4 h-4 ml-2" />
+            تقييم
+          </Button>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6 pb-24">
-        {/* Order Type Selection */}
-        <div className="mb-6">
-          <p className="text-sm font-medium mb-3">{t('publicMenu.orderType')}</p>
-          <div className="flex gap-2">
+        {/* Categories */}
+        <div className="flex overflow-x-auto gap-2 mb-6 pb-2">
+          {categories.map(category => (
             <Button
-              variant={orderType === 'delivery' ? 'default' : 'outline'}
-              onClick={() => setOrderType('delivery')}
-              className="flex-1"
+              key={category.id}
+              variant={activeCategory === category.id ? "default" : "outline"}
+              onClick={() => setActiveCategory(category.id)}
+              className="whitespace-nowrap"
             >
-              {t('publicMenu.delivery')}
+              {category.name}
             </Button>
-            <Button
-              variant={orderType === 'pickup' ? 'default' : 'outline'}
-              onClick={() => setOrderType('pickup')}
-              className="flex-1"
-            >
-              {t('publicMenu.pickup')}
-            </Button>
-          </div>
+          ))}
         </div>
 
-        {/* Menu Categories and Items */}
-        <div className="md:grid md:grid-cols-4 md:gap-8">
-          <aside className="hidden md:block md:col-span-1 sticky top-24 self-start">
-            <h2 className="text-lg font-semibold mb-4">{t('publicMenu.categories', 'Categories')}</h2>
-            <nav className="space-y-2">
-              {categories.map(category => (
-                <a
-                  key={category.id}
-                  href={`#category-${category.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToCategory(category.id);
-                  }}
-                  className={`block px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeCategory === category.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted/50'
-                  }`}
-                >
+        {/* Menu Items */}
+        <div className="space-y-6">
+          {categories.map(category => {
+            const categoryItems = getItemsForCategory(category.id);
+            if (categoryItems.length === 0) return null;
+
+            return (
+              <section key={category.id} className="space-y-4">
+                <h2 className="text-xl font-bold text-primary border-b border-border pb-2">
                   {category.name}
-                </a>
-              ))}
-            </nav>
-          </aside>
-          <div className="md:col-span-3">
-            {categories.map(category => (
-              <section key={category.id} id={`category-${category.id}`} className="space-y-4 mb-8">
-                 <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2">
-                    {category.name}
-                  </h2>
-                <div className="grid gap-4 mt-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {getItemsForCategory(category.id).map(item => (
-                    <Card
-                      key={item.id}
-                      className="overflow-hidden shadow-card transition-all duration-300 hover:shadow-lg flex flex-col md:flex-row md:items-center"
-                    >
-                      <img
-                        src={item.image_url || '/placeholder.svg'}
-                        alt={item.name}
-                        className="w-full h-40 md:w-32 md:h-32 object-cover"
-                      />
-                      <CardContent className="p-4 flex flex-col flex-grow justify-between">
-                        <div>
-                          <h3 className="font-bold text-lg text-foreground">{item.name}</h3>
-                          {item.description && (
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                              {item.description}
-                            </p>
+                </h2>
+                <div className="space-y-3">
+                  {categoryItems.map(item => (
+                    <Card key={item.id} className="overflow-hidden shadow-sm">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-4">
+                          {item.image_url && (
+                            <img
+                              src={item.image_url}
+                              alt={item.name}
+                              className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                            />
                           )}
-                          <div className="flex items-center gap-2 mt-2">
-                            {item.dietary_preferences?.includes('vegetarian') && (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <VscVm className="h-5 w-5 text-green-600" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>{t('dietary.vegetarian', 'Vegetarian')}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-base">{item.name}</h3>
+                            {item.description && (
+                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                {item.description}
+                              </p>
                             )}
-                            {item.dietary_preferences?.includes('spicy') && (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <VscFlame className="h-5 w-5 text-red-600" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>{t('dietary.spicy', 'Spicy')}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between mt-4">
-                          <p className="text-lg font-semibold text-primary">
-                            {formatPrice(item.price)}
-                          </p>
-
-                          {item.is_available ? (
-                            <div className="flex items-center gap-2">
-                              {getItemQuantity(item.id) > 0 && (
-                                <>
+                            <div className="flex items-center justify-between mt-3">
+                              <span className="text-lg font-bold text-primary">
+                                {formatPrice(item.price)}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                {getItemQuantity(item.id) > 0 && (
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     onClick={() => removeFromCart(item.id)}
-                                    className="h-9 w-9 p-0 rounded-full"
+                                    className="w-8 h-8 p-0"
                                   >
-                                    <Minus size={16} />
+                                    <Minus className="w-4 h-4" />
                                   </Button>
-                                  <span className="text-base font-bold min-w-[2rem] text-center">
+                                )}
+                                {getItemQuantity(item.id) > 0 && (
+                                  <span className="text-sm font-medium w-8 text-center">
                                     {getItemQuantity(item.id)}
                                   </span>
-                                </>
-                              )}
-                              <Button
-                                size="sm"
-                                onClick={() => addToCart(item)}
-                                className="h-9 w-9 p-0 rounded-full"
-                              >
-                                <Plus size={16} />
-                              </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  onClick={() => addToCart(item)}
+                                  className="w-8 h-8 p-0"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
-                          ) : (
-                            <Badge variant="secondary" className="text-xs">
-                              {t('common.unavailable', 'Unavailable')}
-                            </Badge>
-                          )}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               </section>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        {/* Customer Feedback Section */}
-        <section className="mt-12">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('publicMenu.feedback.title')}</CardTitle>
-              <CardDescription>{t('publicMenu.feedback.description')}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-center">
-                <StarRating rating={feedbackRating} setRating={setFeedbackRating} />
-              </div>
-              <Textarea
-                placeholder={t('publicMenu.feedback.commentPlaceholder')}
-                value={feedbackComment}
-                onChange={(e) => setFeedbackComment(e.target.value)}
-              />
-              <Button
-                onClick={handleFeedbackSubmit}
-                disabled={isSubmittingFeedback || feedbackRating === 0}
-                className="w-full"
-              >
-                {isSubmittingFeedback ? t('common.submitting') : t('publicMenu.feedback.submitButton')}
-              </Button>
-            </CardContent>
-          </Card>
-        </section>
+        {categories.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">لا توجد فئات متاحة</p>
+          </div>
+        )}
       </main>
 
-      {/* Sticky Cart Footer */}
-      {getTotalItems() > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-20">
+      {/* Cart */}
+      {cart.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-50">
           <div className="container mx-auto">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <ShoppingCart size={18} />
-                <span className="text-sm text-muted-foreground">
-                  {getTotalItems()} {t('publicMenu.itemsInCart')}
-                </span>
-              </div>
-              <div className="text-lg font-semibold">
-                {formatPrice(getTotalPrice())}
-              </div>
+              <span className="font-medium">
+                {cart.length} صنف - {formatPrice(totalPrice)}
+              </span>
+              <Button onClick={handleWhatsAppOrder} size="sm">
+                <ShoppingCart className="w-4 h-4 ml-2" />
+                إرسال عبر واتساب
+              </Button>
             </div>
-            <Button 
-              onClick={handleSendToWhatsApp}
-              className="w-full gradient-hero text-primary-foreground font-semibold"
-              size="lg"
-            >
-              {t('publicMenu.sendOrder')}
-            </Button>
           </div>
+        </div>
+      )}
+
+      {/* Feedback Dialog */}
+      {showFeedback && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>تقييم تجربتك</CardTitle>
+              <CardDescription>كيف كانت تجربتك مع {tenant.name}؟</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-8 h-8 cursor-pointer ${
+                      feedback.rating >= star 
+                        ? "text-yellow-400 fill-yellow-400" 
+                        : "text-gray-300"
+                    }`}
+                    onClick={() => setFeedback(prev => ({ ...prev, rating: star }))}
+                  />
+                ))}
+              </div>
+              <Textarea
+                placeholder="تعليق اختياري..."
+                value={feedback.comment}
+                onChange={(e) => setFeedback(prev => ({ ...prev, comment: e.target.value }))}
+              />
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleSubmitFeedback}
+                  disabled={feedback.rating === 0}
+                  className="flex-1"
+                >
+                  إرسال التقييم
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowFeedback(false)}
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>

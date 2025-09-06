@@ -93,8 +93,9 @@ const RestaurantBranding = (): JSX.Element => {
         if (data) {
           setTenant(data);
           setSelectedColor(data.primary_color || '#2563eb');
-          setLogoPosition(data.logo_position || 'left');
-          setSocialMediaLinks(data.social_media_links || { facebook: '', instagram: '', twitter: '' });
+          // Note: logo_position and social_media_links don't exist in current schema
+          setLogoPosition('left');
+          setSocialMediaLinks({ facebook: '', instagram: '', twitter: '' });
           if (data.logo_url) {
             setLogoPreview(data.logo_url);
           }
