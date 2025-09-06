@@ -240,18 +240,18 @@ const PublicMenu = (): JSX.Element => {
     try {
       // Log order items
       await supabase.rpc('log_order_items', {
-        p_tenant_id: tenant.id,
-        p_order_items: cart.map(item => ({
-          menu_item_id: item.id,
+        tenant_id_param: tenant.id,
+        items: cart.map(item => ({
+          id: item.id,
           quantity: item.quantity,
         })),
       });
 
       // Log order
       await supabase.rpc('log_order', {
-        p_tenant_id: tenant.id,
-        p_total_price: totalPrice,
-        p_order_type: 'whatsapp',
+        tenant_id_param: tenant.id,
+        total_price_param: totalPrice,
+        order_type_param: 'whatsapp',
       });
 
       const message = generateWhatsAppMessage({

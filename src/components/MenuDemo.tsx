@@ -6,6 +6,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { motion, AnimatePresence } from "framer-motion";
 import { VscFlame } from "@/components/icons/VscFlame";
 import { VscVm } from "@/components/icons/VscVm";
+import arTranslations from "@/i18n/ar.json";
+import enTranslations from "@/i18n/en.json";
 
 /**
  * An interactive demonstration of the menu and ordering system.
@@ -16,13 +18,20 @@ import { VscVm } from "@/components/icons/VscVm";
  * @returns {JSX.Element} The rendered menu demo section.
  */
 const MenuDemo = (): JSX.Element => {
-  const { t } = useTranslation();
-  const demoItems = t("menuDemo.items", { returnObjects: true });
+  const { t, language } = useTranslation();
+  
+  // Access demo items directly from translations
+  const translations = {
+    ar: arTranslations,
+    en: enTranslations,
+  } as const;
+  const demoItems = translations[language].menuDemo.items;
+  
   const [cart, setCart] = useState<
     { id: number; name: string; price: number; quantity: number }[]
   >([]);
 
-  const addToCart = (item: (typeof demoItems)[0]) => {
+  const addToCart = (item: typeof demoItems[0]) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find(
         (cartItem) => cartItem.id === item.id
