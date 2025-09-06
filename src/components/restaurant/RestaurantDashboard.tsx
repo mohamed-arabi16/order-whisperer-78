@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/hooks/useTranslation";
+import RestaurantDashboardSkeleton from "./RestaurantDashboardSkeleton";
 
 /**
  * Represents a tenant (restaurant) with its details.
@@ -146,14 +147,7 @@ const RestaurantDashboard = (): JSX.Element => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">{t('common.loading')}</p>
-        </div>
-      </div>
-    );
+    return <RestaurantDashboardSkeleton />;
   }
 
   if (!tenant) {

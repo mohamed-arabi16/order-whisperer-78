@@ -250,7 +250,7 @@ const SuperAdminDashboard = (): JSX.Element => {
           <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t('superAdmin.stats.totalRestaurants')}</CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <Building2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{tenants.length}</div>
@@ -263,7 +263,7 @@ const SuperAdminDashboard = (): JSX.Element => {
           <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t('superAdmin.stats.paidPlans')}</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Users className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -278,7 +278,7 @@ const SuperAdminDashboard = (): JSX.Element => {
           <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t('superAdmin.stats.activeAccounts')}</CardTitle>
-              <Settings className="h-4 w-4 text-muted-foreground" />
+              <Settings className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -304,7 +304,7 @@ const SuperAdminDashboard = (): JSX.Element => {
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t('superAdmin.stats.analytics')}</CardTitle>
-              <LineChart className="h-4 w-4 text-muted-foreground" />
+              <LineChart className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{t('common.view')}</div>
@@ -484,6 +484,7 @@ const SuperAdminDashboard = (): JSX.Element => {
                             setCurrentPage(prev => Math.max(prev - 1, 1));
                           }}
                           className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                          aria-label={t('superAdmin.pagination.previous')}
                         />
                       </PaginationItem>
                       {[...Array(totalPages)].map((_, i) => (
@@ -495,6 +496,7 @@ const SuperAdminDashboard = (): JSX.Element => {
                               setCurrentPage(i + 1);
                             }}
                             isActive={currentPage === i + 1}
+                            aria-label={t('superAdmin.pagination.page', { page: i + 1 })}
                           >
                             {i + 1}
                           </PaginationLink>
@@ -508,6 +510,7 @@ const SuperAdminDashboard = (): JSX.Element => {
                             setCurrentPage(prev => Math.min(prev + 1, totalPages));
                           }}
                           className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                          aria-label={t('superAdmin.pagination.next')}
                         />
                       </PaginationItem>
                     </PaginationContent>
