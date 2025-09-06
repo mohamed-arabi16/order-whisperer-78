@@ -27,7 +27,7 @@ import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { DateRange } from "react-day-picker";
 import { addDays } from "date-fns";
 import { useTranslation } from "@/hooks/useTranslation";
-import { ChartContainer, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 
 const Analytics = () => {
   const { profile, isAdmin, isRestaurantOwner } = useAuth();
@@ -51,8 +51,8 @@ const Analytics = () => {
 
         if (isAdmin) {
           const { data: newTenants, error: newTenantsError } = await supabase.rpc(
-            "get_new_tenants_over_time_by_date_range",
-            { start_date_param: fromDate, end_date_param: toDate }
+            "get_new_tenants_over_time",
+            { time_period_param: "day" }
           );
           if (newTenantsError) throw newTenantsError;
           data.newTenants = newTenants;
@@ -67,35 +67,23 @@ const Analytics = () => {
               { data: totalViews, error: totalViewsError },
               { data: popularItems, error: popularItemsError },
               { data: salesData, error: salesDataError },
-              { data: orderBreakdown, error: orderBreakdownError },
-              { data: avgOrderValue, error: avgOrderValueError },
               { data: feedback, error: feedbackError },
-              { data: menuViews, error: menuViewsError },
             ] = await Promise.all([
-              supabase.rpc("get_total_menu_views", { tenant_id_param: tenantId, start_date: fromDate, end_date: toDate }),
-              supabase.rpc("get_popular_menu_items", { tenant_id_param: tenantId, limit_param: 5, start_date: fromDate, end_date: toDate }),
-              supabase.rpc("get_sales_data_by_date_range", { tenant_id_param: tenantId, start_date_param: fromDate, end_date_param: toDate }),
-              supabase.rpc("get_order_breakdown_by_type", { tenant_id_param: tenantId, start_date: fromDate, end_date: toDate }),
-              supabase.rpc("get_average_order_value_over_time", { tenant_id_param: tenantId, start_date: fromDate, end_date: toDate }),
+              supabase.rpc("get_total_menu_views", { tenant_id_param: tenantId }),
+              supabase.rpc("get_popular_menu_items", { tenant_id_param: tenantId, limit_param: 5 }),
+              supabase.rpc("get_sales_data", { tenant_id_param: tenantId, time_period_param: "day" }),
               supabase.from("feedback").select("rating, created_at").eq("tenant_id", tenantId).gte("created_at", fromDate).lte("created_at", toDate),
-              supabase.rpc("get_menu_views_over_time", { tenant_id_param: tenantId, start_date: fromDate, end_date: toDate }),
             ]);
 
             if (totalViewsError) console.error("Total Views Error:", totalViewsError);
             if (popularItemsError) console.error("Popular Items Error:", popularItemsError);
             if (salesDataError) console.error("Sales Data Error:", salesDataError);
-            if (orderBreakdownError) console.error("Order Breakdown Error:", orderBreakdownError);
-            if (avgOrderValueError) console.error("Avg Order Value Error:", avgOrderValueError);
             if (feedbackError) console.error("Feedback Error:", feedbackError);
-            if (menuViewsError) console.error("Menu Views Error:", menuViewsError);
 
             data.totalViews = totalViews;
             data.popularItems = popularItems;
             data.salesData = salesData;
-            data.orderBreakdown = orderBreakdown;
-            data.avgOrderValue = avgOrderValue;
             data.feedback = feedback;
-            data.menuViews = menuViews;
           }
         }
         setAnalyticsData(data);
@@ -174,12 +162,12 @@ const Analytics = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date_trunc" />
                     <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Tooltip content={<ChartTooltipContent />} />
                     <Legend />
                     <Line
                       type="monotone"
                       dataKey="new_tenants_count"
-                      stroke="var(--color-new_tenants_count)"
+                      stroke="hsl(var(--primary))"
                       activeDot={{ r: 8 }}
                     />
                   </LineChart>
@@ -206,106 +194,60 @@ const Analytics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-4xl font-bold">
-                    {analyticsData.salesData?.reduce((acc: any, item: any) => acc + item.total_sales, 0) || 0}
+                    ${analyticsData.salesData?.reduce((acc: any, item: any) => acc + parseFloat(item.total_sales), 0).toFixed(2) || 0}
                   </p>
                 </CardContent>
               </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('analytics.totalFeedback')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-4xl font-bold">{analyticsData.feedback?.length || 0}</p>
+                </CardContent>
+              </Card>
             </div>
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('analytics.menuViewsOverTime')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={{ view_count: { label: t('analytics.viewCount'), color: 'hsl(var(--chart-1))' } }}>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={analyticsData.menuViews}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date_trunc" />
-                      <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Legend />
-                      <Line type="monotone" dataKey="view_count" stroke="var(--color-view_count)" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
+            
             <Card>
               <CardHeader>
                 <CardTitle>{t('analytics.popularItems')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartContainer config={{ total_orders: { label: t('analytics.totalOrders'), color: 'hsl(var(--chart-2))' } }}>
+                <ChartContainer config={{ total_orders: { label: t('analytics.totalOrders'), color: 'hsl(var(--primary))' } }}>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={analyticsData.popularItems}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Tooltip content={<ChartTooltipContent />} />
                       <Legend />
-                      <Bar dataKey="total_orders" fill="var(--color-total_orders)" />
+                      <Bar dataKey="total_orders" fill="hsl(var(--primary))" />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
               </CardContent>
             </Card>
+            
             <Card>
               <CardHeader>
                 <CardTitle>{t('analytics.revenueOverTime')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartContainer config={{ total_sales: { label: t('analytics.totalSales'), color: 'hsl(var(--chart-1))' } }}>
+                <ChartContainer config={{ total_sales: { label: t('analytics.totalSales'), color: 'hsl(var(--primary))' } }}>
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={analyticsData.salesData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date_trunc" />
                       <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Tooltip content={<ChartTooltipContent />} />
                       <Legend />
-                      <Line type="monotone" dataKey="total_sales" stroke="var(--color-total_sales)" />
+                      <Line type="monotone" dataKey="total_sales" stroke="hsl(var(--primary))" />
                     </LineChart>
                   </ResponsiveContainer>
                 </ChartContainer>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('analytics.orderBreakdown')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={{ order_count: { label: t('analytics.orderCount'), color: 'hsl(var(--chart-1))' } }}>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={analyticsData.orderBreakdown}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="order_type" />
-                      <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Legend />
-                      <Bar dataKey="order_count" fill="var(--color-order_count)" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('analytics.avgOrderValue')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={{ avg_order_value: { label: t('analytics.avgOrderValueLabel'), color: 'hsl(var(--chart-2))' } }}>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={analyticsData.avgOrderValue}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date_trunc" />
-                      <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Legend />
-                      <Line type="monotone" dataKey="avg_order_value" stroke="var(--color-avg_order_value)" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
+            
             <Card>
               <CardHeader>
                 <CardTitle>{t('analytics.customerFeedback')}</CardTitle>
@@ -314,28 +256,28 @@ const Analytics = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-semibold mb-2">{t('analytics.ratingDistribution')}</h3>
-                    <ChartContainer config={{ count: { label: t('analytics.count'), color: 'hsl(var(--chart-1))' } }}>
+                    <ChartContainer config={{ count: { label: t('analytics.count'), color: 'hsl(var(--primary))' } }}>
                       <ResponsiveContainer width="100%" height={200}>
                         <BarChart data={feedbackDistribution}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="rating" />
                           <YAxis />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Bar dataKey="count" fill="var(--color-count)" />
+                          <Tooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="count" fill="hsl(var(--primary))" />
                         </BarChart>
                       </ResponsiveContainer>
                     </ChartContainer>
                   </div>
                   <div>
                     <h3 className="font-semibold mb-2">{t('analytics.avgRatingOverTime')}</h3>
-                    <ChartContainer config={{ avg_rating: { label: t('analytics.avgRating'), color: 'hsl(var(--chart-2))' } }}>
+                    <ChartContainer config={{ avg_rating: { label: t('analytics.avgRating'), color: 'hsl(var(--primary))' } }}>
                       <ResponsiveContainer width="100%" height={200}>
                         <LineChart data={averageRatingOverTime}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="date" />
                           <YAxis domain={[1, 5]} />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Line type="monotone" dataKey="avg_rating" stroke="var(--color-avg_rating)" />
+                          <Tooltip content={<ChartTooltipContent />} />
+                          <Line type="monotone" dataKey="avg_rating" stroke="hsl(var(--primary))" />
                         </LineChart>
                       </ResponsiveContainer>
                     </ChartContainer>
