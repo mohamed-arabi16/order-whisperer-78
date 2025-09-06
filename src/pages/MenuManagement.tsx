@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,11 +7,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, ArrowRight, Menu, Package } from "lucide-react";
+import { Plus, ArrowRight, Menu, Package, Search, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import Papa from "papaparse";
 import { useToast } from "@/hooks/use-toast";
 import CategoryManager from "@/components/menu/CategoryManager";
 import MenuItemManager from "@/components/menu/MenuItemManager";
@@ -56,6 +73,56 @@ const MenuManagement = (): JSX.Element => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [tenantId, setTenantId] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [availabilityFilter, setAvailabilityFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  const filteredMenuItems = useMemo(() => {
+    const filtered = menuItems.filter(item => {
+      const searchTermLower = searchTerm.toLowerCase();
+      const matchesSearch = item.name.toLowerCase().includes(searchTermLower);
+
+      const matchesCategory =
+        categoryFilter === 'all' || item.category_id === categoryFilter;
+
+      const matchesAvailability =
+        availabilityFilter === 'all' ||
+        (availabilityFilter === 'available' && item.is_available) ||
+        (availabilityFilter === 'unavailable' && !item.is_available);
+
+      return matchesSearch && matchesCategory && matchesAvailability;
+    });
+    return filtered;
+  }, [menuItems, searchTerm, categoryFilter, availabilityFilter]);
+
+  const totalPages = Math.ceil(filteredMenuItems.length / itemsPerPage);
+  const paginatedMenuItems = filteredMenuItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleExport = () => {
+    const dataToExport = filteredMenuItems.map(item => ({
+      'Category': categories.find(c => c.id === item.category_id)?.name || '',
+      'Item Name': item.name,
+      'Description': item.description,
+      'Price': item.price,
+      'Available': item.is_available ? 'Yes' : 'No',
+    }));
+
+    const csv = Papa.unparse(dataToExport);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'menu.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   useEffect(() => {
     fetchTenantAndMenu();
@@ -193,16 +260,97 @@ const MenuManagement = (): JSX.Element => {
             />
           </TabsContent>
 
-          <TabsContent value="items">
+          <TabsContent value="items" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">الأصناف</h2>
+              <Button onClick={handleExport} variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                تصدير CSV
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="البحث عن صنف..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="تصفية حسب الفئة" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">كل الفئات</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="تصفية حسب التوفر" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="available">متوفر</SelectItem>
+                  <SelectItem value="unavailable">غير متوفر</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <MenuItemManager 
               categories={categories}
-              menuItems={menuItems}
+              menuItems={paginatedMenuItems}
               tenantId={tenantId}
               onMenuItemsChange={(updatedItems) => {
                 setMenuItems(updatedItems);
                 fetchMenuData(tenantId); // Refresh to get updated data
               }}
             />
+            {totalPages > 1 && (
+              <div className="pt-6">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(prev => Math.max(prev - 1, 1));
+                        }}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                      />
+                    </PaginationItem>
+                    {[...Array(totalPages)].map((_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(i + 1);
+                          }}
+                          isActive={currentPage === i + 1}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                        }}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="preview">

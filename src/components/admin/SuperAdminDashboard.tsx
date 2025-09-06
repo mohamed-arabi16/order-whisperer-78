@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,10 +7,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, Building2, Settings } from "lucide-react";
+import { Plus, Users, Building2, Settings, Search, Download, LineChart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import Papa from "papaparse";
 import CreateTenantDialog from "./CreateTenantDialog";
 import EditTenantDialog from "./EditTenantDialog";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -49,6 +66,38 @@ const SuperAdminDashboard = (): JSX.Element => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [planFilter, setPlanFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const filteredTenants = useMemo(() => {
+    const filtered = tenants.filter(tenant => {
+      const searchTermLower = searchTerm.toLowerCase();
+      const matchesSearch =
+        tenant.name.toLowerCase().includes(searchTermLower) ||
+        tenant.owner?.full_name?.toLowerCase().includes(searchTermLower) ||
+        tenant.owner?.email?.toLowerCase().includes(searchTermLower);
+
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'active' && tenant.is_active) ||
+        (statusFilter === 'inactive' && !tenant.is_active);
+
+      const matchesPlan =
+        planFilter === 'all' || tenant.subscription_plan === planFilter;
+
+      return matchesSearch && matchesStatus && matchesPlan;
+    });
+    return filtered;
+  }, [tenants, searchTerm, statusFilter, planFilter]);
+
+  const totalPages = Math.ceil(filteredTenants.length / itemsPerPage);
+  const paginatedTenants = filteredTenants.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   useEffect(() => {
     fetchTenants();
@@ -88,6 +137,28 @@ const SuperAdminDashboard = (): JSX.Element => {
     setShowEditDialog(true);
   };
 
+  const handleExport = () => {
+    const dataToExport = filteredTenants.map(tenant => ({
+      'Restaurant Name': tenant.name,
+      'Owner Name': tenant.owner?.full_name,
+      'Owner Email': tenant.owner?.email,
+      'Subscription Plan': tenant.subscription_plan,
+      'Status': tenant.is_active ? 'Active' : 'Inactive',
+      'Registration Date': new Date(tenant.created_at).toISOString().split('T')[0],
+    }));
+
+    const csv = Papa.unparse(dataToExport);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'tenants.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center">
@@ -115,7 +186,7 @@ const SuperAdminDashboard = (): JSX.Element => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t('superAdmin.stats.totalRestaurants')}</CardTitle>
@@ -160,30 +231,86 @@ const SuperAdminDashboard = (): JSX.Element => {
               </p>
             </CardContent>
           </Card>
+          <Card className="shadow-card hover:shadow-warm transition-smooth cursor-pointer" onClick={() => navigate('/analytics')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{t('superAdmin.stats.analytics')}</CardTitle>
+              <LineChart className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{t('common.view')}</div>
+              <p className="text-xs text-muted-foreground">
+                {t('superAdmin.stats.analyticsDescription')}
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Tenants Management */}
         <Card className="shadow-card">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
                 <CardTitle>{t('superAdmin.tenantsManagement.title')}</CardTitle>
                 <CardDescription>
                   {t('superAdmin.tenantsManagement.description')}
                 </CardDescription>
               </div>
-              <Button 
-                onClick={() => setShowCreateDialog(true)}
-                variant="hero"
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                {t('superAdmin.tenantsManagement.addButton')}
-              </Button>
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <Button
+                  onClick={handleExport}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  {t('common.export')}
+                </Button>
+                <Button
+                  onClick={() => setShowCreateDialog(true)}
+                  variant="hero"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t('superAdmin.tenantsManagement.addButton')}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
-            {tenants.length === 0 ? (
+            {/* Search and Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={t('superAdmin.filters.searchPlaceholder')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('superAdmin.filters.status.placeholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('superAdmin.filters.status.all')}</SelectItem>
+                  <SelectItem value="active">{t('superAdmin.filters.status.active')}</SelectItem>
+                  <SelectItem value="inactive">{t('superAdmin.filters.status.inactive')}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={planFilter} onValueChange={setPlanFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('superAdmin.filters.plan.placeholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('superAdmin.filters.plan.all')}</SelectItem>
+                  <SelectItem value="basic">{t('plans.basic')}</SelectItem>
+                  <SelectItem value="premium">{t('plans.premium')}</SelectItem>
+                  <SelectItem value="enterprise">{t('plans.enterprise')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {paginatedTenants.length === 0 ? (
               <div className="text-center py-8">
                 <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">{t('superAdmin.noTenants.title')}</h3>
@@ -198,11 +325,12 @@ const SuperAdminDashboard = (): JSX.Element => {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
-                {tenants.map((tenant) => (
-                  <div 
-                    key={tenant.id} 
-                    className="flex items-center justify-between p-4 border rounded-lg bg-card hover:shadow-md transition-smooth"
+              <>
+                <div className="space-y-4">
+                  {paginatedTenants.map((tenant) => (
+                    <div
+                      key={tenant.id}
+                      className="flex items-center justify-between p-4 border rounded-lg bg-card hover:shadow-md transition-smooth"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -234,6 +362,49 @@ const SuperAdminDashboard = (): JSX.Element => {
                   </div>
                 ))}
               </div>
+              {totalPages > 1 && (
+                <div className="pt-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(prev => Math.max(prev - 1, 1));
+                          }}
+                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                        />
+                      </PaginationItem>
+                      {[...Array(totalPages)].map((_, i) => (
+                        <PaginationItem key={i}>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setCurrentPage(i + 1);
+                            }}
+                            isActive={currentPage === i + 1}
+                          >
+                            {i + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                          }}
+                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+              </>
             )}
           </CardContent>
         </Card>
