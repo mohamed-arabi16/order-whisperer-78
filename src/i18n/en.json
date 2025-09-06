@@ -43,7 +43,8 @@
     "export": "Export",
     "view": "View",
     "error.genericTitle": "Something went wrong",
-    "error.genericMessage": "An unexpected error occurred. Please try again later."
+    "error.genericMessage": "An unexpected error occurred. Please try again later.",
+    "processing": "Processing..."
   },
   "header": {
     "brand": "RestaurantOS",
@@ -130,6 +131,21 @@
       "email": "Email",
       "registrationDate": "Registration Date",
       "viewMenu": "View Menu"
+    },
+    "bulkActions": {
+      "title": "Bulk Actions",
+      "activate": "Activate Selected",
+      "deactivate": "Deactivate Selected",
+      "delete": "Delete Selected",
+      "selectAll": "Select All ({{count}} selected)",
+      "successTitle": "Bulk Action Successful",
+      "successDescription": "{{count}} restaurants have been {{action}}."
+    },
+    "errors": {
+      "fetchTenantsTitle": "Error Fetching Restaurants",
+      "fetchTenantsDescription": "Could not load the list of restaurants. Please check your connection and try again.",
+      "bulkActionTitle": "Bulk Action Failed",
+      "bulkActionDescription": "An error occurred while processing the bulk action. Please try again."
     }
   },
   "restaurant": {
