@@ -65,13 +65,31 @@ const RestaurantDashboard = (): JSX.Element => {
             .select('*')
             .eq('tenant_id', tenantId)
             .order('created_at', { ascending: false });
-          if (feedbackError) throw feedbackError;
-          // setFeedback(feedbackData || []);
+          if (feedbackError) {
+            console.error("Error fetching feedback:", feedbackError);
+            toast({
+              title: t('restaurant.toast.feedbackErrorTitle'),
+              description: t('restaurant.toast.feedbackErrorDescription'),
+              variant: "destructive",
+            });
+          } else {
+            setFeedback(feedbackData || []);
+          }
         } else {
           console.error('No tenant found for this user.');
+          toast({
+            title: t('restaurant.toast.noTenantTitle'),
+            description: t('restaurant.toast.noTenantDescription'),
+            variant: "destructive",
+          });
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        toast({
+          title: t('common.error.genericTitle'),
+          description: t('common.error.genericMessage'),
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }

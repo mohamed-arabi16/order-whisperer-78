@@ -8,6 +8,7 @@ import { Minus, Plus, ShoppingCart, Star, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Textarea } from "@/components/ui/textarea";
+import { generateWhatsAppMessage, openWhatsApp, validatePhoneNumber } from "@/lib/whatsapp";
 
 interface Tenant {
   id: string;
@@ -182,45 +183,47 @@ const PublicMenu = (): JSX.Element => {
 
   const handleWhatsAppOrder = async () => {
     if (!tenant?.phone_number) {
-      toast.error("رقم الهاتف غير متاح");
+      toast.error(t('publicMenu.errors.phoneNotAvailable'));
+      return;
+    }
+
+    if (!validatePhoneNumber(tenant.phone_number)) {
+      toast.error(t('publicMenu.errors.invalidPhone'));
+      console.error("Invalid phone number provided:", tenant.phone_number);
       return;
     }
 
     try {
       // Log order items
-      for (const item of cart) {
-        await supabase.from("order_items").insert({
-          tenant_id: tenant.id,
+      await supabase.rpc('log_order_items', {
+        p_tenant_id: tenant.id,
+        p_order_items: cart.map(item => ({
           menu_item_id: item.id,
           quantity: item.quantity,
-        });
-      }
+        })),
+      });
 
       // Log order
-      await supabase.from("orders").insert({
-        tenant_id: tenant.id,
-        total_price: totalPrice,
-        order_type: "whatsapp",
+      await supabase.rpc('log_order', {
+        p_tenant_id: tenant.id,
+        p_total_price: totalPrice,
+        p_order_type: 'whatsapp',
       });
 
-      // Generate WhatsApp message
-      let message = `مرحباً! أود طلب الأصناف التالية من ${tenant.name}:\n\n`;
-      
-      cart.forEach(item => {
-        message += `• ${item.name} × ${item.quantity} - ${formatPrice(item.price * item.quantity)}\n`;
+      const message = generateWhatsAppMessage({
+        restaurantName: tenant.name,
+        items: cart,
+        orderType: t('publicMenu.orderType.whatsapp'),
+        totalPrice: totalPrice,
       });
-      
-      message += `\nالمجموع: ${formatPrice(totalPrice)}\n`;
-      message += `شكراً لكم!`;
 
-      const whatsappUrl = `https://wa.me/${tenant.phone_number.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, '_blank');
+      openWhatsApp(tenant.phone_number, message);
       
       setCart([]); // Clear cart after sending
-      toast.success("تم إرسال الطلب عبر واتساب");
+      toast.success(t('publicMenu.toast.orderSuccess'));
     } catch (err) {
       console.error("Error processing order:", err);
-      toast.error("حدث خطأ أثناء معالجة الطلب");
+      toast.error(t('publicMenu.errors.orderProcessing'));
     }
   };
 
