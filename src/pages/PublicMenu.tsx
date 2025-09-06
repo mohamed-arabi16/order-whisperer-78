@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Plus, Minus, ShoppingCart, Vegan, Flame } from "lucide-react";
+import { Plus, Minus, ShoppingCart, Vegan, Flame, Star, Facebook, Instagram, Twitter } from "lucide-react";
 import { generateWhatsAppMessage } from "@/lib/whatsapp"; // WhatsApp integration
 import { useTranslation } from "@/hooks/useTranslation";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 import { MenuSkeleton } from "@/components/menu/MenuSkeleton";
 import { VscFlame } from "@/components/icons/VscFlame";
 import { VscVm } from "@/components/icons/VscVm";
@@ -24,6 +25,12 @@ interface Tenant {
   logo_url: string | null;
   cover_photo_url: string | null;
   primary_color: string | null;
+  logo_position?: 'left' | 'center' | 'right';
+  social_media_links?: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+  };
 }
 
 /**
@@ -76,6 +83,23 @@ const PublicMenu = (): JSX.Element => {
   const [loading, setLoading] = useState(true);
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+
+  const StarRating = ({ rating, setRating }: { rating: number, setRating: (rating: number) => void }) => {
+    return (
+      <div className="flex items-center gap-1" dir="ltr">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`h-8 w-8 cursor-pointer ${rating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+            onClick={() => setRating(star)}
+          />
+        ))}
+      </div>
+    );
+  };
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -207,6 +231,45 @@ const PublicMenu = (): JSX.Element => {
     }
   };
 
+  const handleFeedbackSubmit = async () => {
+    if (feedbackRating === 0) {
+      toast({
+        title: t('publicMenu.feedback.ratingRequiredTitle'),
+        description: t('publicMenu.feedback.ratingRequiredDescription'),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmittingFeedback(true);
+    try {
+      const { error } = await supabase.rpc('submit_feedback', {
+        tenant_id_param: tenant!.id,
+        rating_param: feedbackRating,
+        comment_param: feedbackComment,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: t('publicMenu.feedback.successTitle'),
+        description: t('publicMenu.feedback.successDescription'),
+      });
+
+      setFeedbackRating(0);
+      setFeedbackComment('');
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      toast({
+        title: t('common.error'),
+        description: t('common.genericError'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
+
   const handleSendToWhatsApp = () => {
     if (!tenant?.phone_number) {
       toast({
@@ -262,7 +325,10 @@ const PublicMenu = (): JSX.Element => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-          <div className="container mx-auto flex items-center gap-4">
+          <div className={`container mx-auto flex items-center gap-4 ${
+            tenant.logo_position === 'center' ? 'justify-center text-center' :
+            tenant.logo_position === 'right' ? 'justify-end' : ''
+          }`}>
             {tenant.logo_url && (
               <img
                 src={tenant.logo_url}
@@ -274,6 +340,23 @@ const PublicMenu = (): JSX.Element => {
               <h1 className="text-2xl md:text-3xl font-bold text-white shadow-text">
                 {tenant.name}
               </h1>
+              <div className="flex gap-2 mt-2">
+                {tenant.social_media_links?.facebook && (
+                  <a href={tenant.social_media_links.facebook} target="_blank" rel="noopener noreferrer">
+                    <Facebook className="h-6 w-6 text-white hover:text-primary" />
+                  </a>
+                )}
+                {tenant.social_media_links?.instagram && (
+                  <a href={tenant.social_media_links.instagram} target="_blank" rel="noopener noreferrer">
+                    <Instagram className="h-6 w-6 text-white hover:text-primary" />
+                  </a>
+                )}
+                {tenant.social_media_links?.twitter && (
+                  <a href={tenant.social_media_links.twitter} target="_blank" rel="noopener noreferrer">
+                    <Twitter className="h-6 w-6 text-white hover:text-primary" />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -422,6 +505,33 @@ const PublicMenu = (): JSX.Element => {
             ))}
           </div>
         </div>
+
+        {/* Customer Feedback Section */}
+        <section className="mt-12">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('publicMenu.feedback.title')}</CardTitle>
+              <CardDescription>{t('publicMenu.feedback.description')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-center">
+                <StarRating rating={feedbackRating} setRating={setFeedbackRating} />
+              </div>
+              <Textarea
+                placeholder={t('publicMenu.feedback.commentPlaceholder')}
+                value={feedbackComment}
+                onChange={(e) => setFeedbackComment(e.target.value)}
+              />
+              <Button
+                onClick={handleFeedbackSubmit}
+                disabled={isSubmittingFeedback || feedbackRating === 0}
+                className="w-full"
+              >
+                {isSubmittingFeedback ? t('common.submitting') : t('publicMenu.feedback.submitButton')}
+              </Button>
+            </CardContent>
+          </Card>
+        </section>
       </main>
 
       {/* Sticky Cart Footer */}
