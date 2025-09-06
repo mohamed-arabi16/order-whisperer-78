@@ -196,9 +196,11 @@ const PublicMenu = (): JSX.Element => {
       }
       return [...prev, { id: item.id, name: item.name, price: item.price, quantity: 1 }];
     });
+    toast.success(`${item.name} ${t('publicMenu.addToCart')}`);
   };
 
   const removeFromCart = (itemId: string) => {
+    const item = menuItems.find(i => i.id === itemId);
     setCart(prev => {
       const existing = prev.find(cartItem => cartItem.id === itemId);
       if (existing && existing.quantity > 1) {
@@ -210,6 +212,9 @@ const PublicMenu = (): JSX.Element => {
       }
       return prev.filter(cartItem => cartItem.id !== itemId);
     });
+    if (item) {
+      toast.error(`${item.name} ${t('publicMenu.removeFromCart')}`);
+    }
   };
 
   const getItemQuantity = (itemId: string) => {
@@ -414,6 +419,7 @@ const PublicMenu = (): JSX.Element => {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: index * 0.05 }}
+                          whileHover={{ scale: 1.03, y: -5 }}
                         >
                           <Card className="overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
                             {item.image_url && (
@@ -446,7 +452,9 @@ const PublicMenu = (): JSX.Element => {
                                         onClick={() => removeFromCart(item.id)}
                                         className="w-8 h-8 rounded-full"
                                       >
-                                        <Minus className="w-4 h-4" />
+                                        <motion.div whileTap={{ scale: 0.8 }}>
+                                          <Minus className="w-4 h-4" />
+                                        </motion.div>
                                       </Button>
                                       <span className="text-lg font-medium w-8 text-center">
                                         {getItemQuantity(item.id)}
@@ -456,7 +464,9 @@ const PublicMenu = (): JSX.Element => {
                                         onClick={() => addToCart(item)}
                                         className="w-8 h-8 rounded-full"
                                       >
-                                        <Plus className="w-4 h-4" />
+                                        <motion.div whileTap={{ scale: 0.8 }}>
+                                          <Plus className="w-4 h-4" />
+                                        </motion.div>
                                       </Button>
                                     </>
                                   ) : (
@@ -465,7 +475,9 @@ const PublicMenu = (): JSX.Element => {
                                       onClick={() => addToCart(item)}
                                       className="w-8 h-8 rounded-full"
                                     >
-                                      <Plus className="w-4 h-4" />
+                                      <motion.div whileTap={{ scale: 0.8 }}>
+                                        <Plus className="w-4 h-4" />
+                                      </motion.div>
                                     </Button>
                                   )}
                                 </div>
@@ -502,16 +514,16 @@ const PublicMenu = (): JSX.Element => {
           animate={{ y: 0 }}
           exit={{ y: 100 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-50"
+          className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-3 md:p-4 z-50"
         >
           <div className="container mx-auto">
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-medium">
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-sm md:text-base">
                 {cart.length} صنف - {formatPrice(totalPrice)}
               </span>
               <Button onClick={handleWhatsAppOrder} size="sm" disabled={isProcessingOrder}>
                 {isProcessingOrder ? (
-                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 md:ml-2 animate-spin" />
                 ) : (
                   <motion.div animate={controls}>
                     <ShoppingCart className="w-4 h-4 ml-2" />

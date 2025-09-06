@@ -578,5 +578,29 @@
     "messageLabel": "Message",
     "messagePlaceholder": "Your message",
     "submitButton": "Send Message"
+  },
+  "analytics": {
+    "title": "Analytics Dashboard",
+    "description": "A comprehensive overview of your restaurant's performance",
+    "loading": "Loading analytics...",
+    "totalMenuViews": "Total Menu Views",
+    "totalRevenue": "Total Revenue",
+    "menuViewsOverTime": "Menu Views Over Time",
+    "popularItems": "Most Popular Items",
+    "revenueOverTime": "Revenue Over Time",
+    "orderBreakdown": "Order Breakdown by Type",
+    "avgOrderValue": "Average Order Value Over Time",
+    "customerFeedback": "Customer Feedback Analytics",
+    "ratingDistribution": "Rating Distribution",
+    "avgRatingOverTime": "Average Rating Over Time",
+    "newUsers": "New Users",
+    "viewCount": "View Count",
+    "totalOrders": "Total Orders",
+    "totalSales": "Total Sales",
+    "orderCount": "Order Count",
+    "avgOrderValueLabel": "Avg. Order Value",
+    "rating": "Rating",
+    "count": "Count",
+    "avgRating": "Avg. Rating"
   }
 }

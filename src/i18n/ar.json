@@ -557,5 +557,29 @@
     "messageLabel": "الرسالة",
     "messagePlaceholder": "رسالتك",
     "submitButton": "إرسال الرسالة"
+  },
+  "analytics": {
+    "title": "لوحة التحليلات",
+    "description": "نظرة شاملة على أداء مطعمك",
+    "loading": "جاري تحميل التحليلات...",
+    "totalMenuViews": "إجمالي مشاهدات القائمة",
+    "totalRevenue": "إجمالي الإيرادات",
+    "menuViewsOverTime": "مشاهدات القائمة على مدار الوقت",
+    "popularItems": "الأصناف الأكثر طلباً",
+    "revenueOverTime": "الإيرادات على مدار الوقت",
+    "orderBreakdown": "توزيع الطلبات حسب النوع",
+    "avgOrderValue": "متوسط قيمة الطلب على مدار الوقت",
+    "customerFeedback": "تحليلات تقييمات العملاء",
+    "ratingDistribution": "توزيع التقييمات",
+    "avgRatingOverTime": "متوسط التقييم على مدار الوقت",
+    "newUsers": "المستخدمون الجدد",
+    "viewCount": "عدد المشاهدات",
+    "totalOrders": "إجمالي الطلبات",
+    "totalSales": "إجمالي المبيعات",
+    "orderCount": "عدد الطلبات",
+    "avgOrderValueLabel": "متوسط قيمة الطلب",
+    "rating": "التقييم",
+    "count": "العدد",
+    "avgRating": "متوسط التقييم"
   }
 }
