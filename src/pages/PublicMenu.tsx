@@ -4,14 +4,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Minus, Plus, ShoppingCart, Star, MessageCircle } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Star, MessageCircle, Utensils } from "lucide-react";
+import { motion, useAnimation } from "framer-motion";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useScrollSpy } from "@/hooks/useScrollSpy";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWhatsAppMessage, openWhatsApp, validatePhoneNumber } from "@/lib/whatsapp";
+import PublicMenuSkeleton from "@/components/menu/PublicMenuSkeleton";
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 interface Tenant {
-  id: string;
+  id:string;
   name: string;
   slug: string;
   phone_number: string | null;
@@ -60,6 +74,17 @@ const PublicMenu = (): JSX.Element => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedback, setFeedback] = useState({ rating: 0, comment: "" });
 
+  const categorySelectors = useMemo(() => categories.map(c => `#category-${c.id}`), [categories]);
+  const activeCategoryId = useScrollSpy(categorySelectors, {
+    rootMargin: '0px 0px -50% 0px',
+  });
+
+  useEffect(() => {
+    if (activeCategoryId) {
+      setActiveCategory(activeCategoryId.replace('category-', ''));
+    }
+  }, [activeCategoryId]);
+
   useEffect(() => {
     const fetchMenuData = async () => {
       if (!slug) return;
@@ -98,7 +123,9 @@ const PublicMenu = (): JSX.Element => {
 
         setCategories(categoriesData || []);
         setMenuItems(itemsData || []);
-        setActiveCategory(categoriesData?.[0]?.id || null);
+        if (categoriesData && categoriesData.length > 0 && !activeCategory) {
+          setActiveCategory(categoriesData[0].id);
+        }
         setError(null);
       } catch (err) {
         console.error("Unexpected error:", err);
@@ -109,7 +136,7 @@ const PublicMenu = (): JSX.Element => {
     };
 
     fetchMenuData();
-  }, [slug]);
+  }, [slug, activeCategory]);
 
   const addToCart = (item: MenuItem) => {
     setCart(prev => {
@@ -151,9 +178,26 @@ const PublicMenu = (): JSX.Element => {
     return menuItems.filter(item => item.category_id === categoryId && item.is_available);
   };
 
+  const handleCategoryClick = (categoryId: string) => {
+    const element = document.getElementById(`category-${categoryId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const totalPrice = useMemo(() => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   }, [cart]);
+
+  const controls = useAnimation();
+  useEffect(() => {
+    if (totalPrice > 0) {
+      controls.start({
+        scale: [1, 1.2, 1],
+        transition: { duration: 0.3 }
+      });
+    }
+  }, [totalPrice, controls]);
 
   const handleSubmitFeedback = async () => {
     if (!tenant) return;
@@ -228,14 +272,7 @@ const PublicMenu = (): JSX.Element => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">جارٍ تحميل القائمة...</p>
-        </div>
-      </div>
-    );
+    return <PublicMenuSkeleton />;
   }
 
   if (error || !tenant) {
@@ -253,140 +290,175 @@ const PublicMenu = (): JSX.Element => {
   }
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {tenant.logo_url && (
-              <img
-                src={tenant.logo_url}
-                alt="شعار المطعم"
-                className="w-10 h-10 rounded-lg object-cover"
-              />
-            )}
-            <div>
-              <h1 className="text-lg font-bold">{tenant.name}</h1>
+    <SidebarProvider>
+      <div className="min-h-screen bg-background" dir="rtl">
+        <Sidebar side="right" className="bg-card border-l">
+          <SidebarHeader>
+            <div className="flex items-center gap-3 p-2">
+              {tenant.logo_url && (
+                <img
+                  src={tenant.logo_url}
+                  alt="شعار المطعم"
+                  className="w-12 h-12 rounded-lg object-cover"
+                />
+              )}
+              <div>
+                <h1 className="text-lg font-bold">{tenant.name}</h1>
+                <p className="text-sm text-muted-foreground">{tenant.address}</p>
+              </div>
             </div>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowFeedback(true)}
-          >
-            <MessageCircle className="w-4 h-4 ml-2" />
-            تقييم
-          </Button>
-        </div>
-      </header>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarMenu>
+              {categories.map(category => (
+                <SidebarMenuItem key={category.id}>
+                  <SidebarMenuButton
+                    onClick={() => handleCategoryClick(category.id)}
+                    isActive={activeCategory === category.id}
+                  >
+                    <Utensils className="w-4 h-4" />
+                    <span>{category.name}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarContent>
+        </Sidebar>
+        <SidebarInset>
+          {/* Header */}
+          <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+            <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+               <div className="flex items-center gap-2">
+                 <SidebarTrigger className="md:hidden" />
+                 <h1 className="text-lg font-bold md:hidden">{tenant.name}</h1>
+               </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowFeedback(true)}
+              >
+                <MessageCircle className="w-4 h-4 ml-2" />
+                تقييم
+              </Button>
+            </div>
+          </header>
 
-      <main className="container mx-auto px-4 py-6 pb-24">
-        {/* Categories */}
-        <div className="flex overflow-x-auto gap-2 mb-6 pb-2">
-          {categories.map(category => (
-            <Button
-              key={category.id}
-              variant={activeCategory === category.id ? "default" : "outline"}
-              onClick={() => setActiveCategory(category.id)}
-              className="whitespace-nowrap"
-            >
-              {category.name}
-            </Button>
-          ))}
-        </div>
+          <main className="container mx-auto px-4 py-6 pb-24">
+            {/* Menu Items */}
+            <div className="space-y-8">
+              {categories.map(category => {
+                const categoryItems = getItemsForCategory(category.id);
+                if (categoryItems.length === 0) return null;
 
-        {/* Menu Items */}
-        <div className="space-y-6">
-          {categories.map(category => {
-            const categoryItems = getItemsForCategory(category.id);
-            if (categoryItems.length === 0) return null;
-
-            return (
-              <section key={category.id} className="space-y-4">
-                <h2 className="text-xl font-bold text-primary border-b border-border pb-2">
-                  {category.name}
-                </h2>
-                <div className="space-y-3">
-                  {categoryItems.map(item => (
-                    <Card key={item.id} className="overflow-hidden shadow-sm">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          {item.image_url && (
-                            <img
+                return (
+                  <section key={category.id} id={`category-${category.id}`} className="space-y-4 scroll-mt-20">
+                    <h2 className="text-2xl font-bold text-primary border-b border-border pb-2">
+                      {category.name}
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {categoryItems.map((item, index) => (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.05 }}
+                        >
+                          <Card className="overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
+                            {item.image_url && (
+                              <img
                               src={item.image_url}
                               alt={item.name}
-                              className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
-                            />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-base">{item.name}</h3>
-                            {item.description && (
-                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                                {item.description}
-                              </p>
+                                className="w-full h-40 object-cover"
+                              />
                             )}
-                            <div className="flex items-center justify-between mt-3">
-                              <span className="text-lg font-bold text-primary">
-                                {formatPrice(item.price)}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                {getItemQuantity(item.id) > 0 && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => removeFromCart(item.id)}
-                                    className="w-8 h-8 p-0"
-                                  >
-                                    <Minus className="w-4 h-4" />
-                                  </Button>
+                            <CardContent className="p-4 flex-1 flex flex-col justify-between">
+                              <div>
+                                <h3 className="font-bold text-lg mb-1">{item.name}</h3>
+                                {item.description && (
+                                  <p className="text-sm text-muted-foreground mb-3 min-h-[40px]">
+                                    {item.description}
+                                  </p>
                                 )}
-                                {getItemQuantity(item.id) > 0 && (
-                                  <span className="text-sm font-medium w-8 text-center">
-                                    {getItemQuantity(item.id)}
-                                  </span>
-                                )}
-                                <Button
-                                  size="sm"
-                                  onClick={() => addToCart(item)}
-                                  className="w-8 h-8 p-0"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                </Button>
                               </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </section>
-            );
-          })}
-        </div>
+                              <div className="flex items-center justify-between mt-3">
+                                <span className="text-xl font-bold text-primary">
+                                  {formatPrice(item.price)}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  {getItemQuantity(item.id) > 0 ? (
+                                    <>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        onClick={() => removeFromCart(item.id)}
+                                        className="w-8 h-8 rounded-full"
+                                      >
+                                        <Minus className="w-4 h-4" />
+                                      </Button>
+                                      <span className="text-lg font-medium w-8 text-center">
+                                        {getItemQuantity(item.id)}
+                                      </span>
+                                      <Button
+                                        size="icon"
+                                        onClick={() => addToCart(item)}
+                                        className="w-8 h-8 rounded-full"
+                                      >
+                                        <Plus className="w-4 h-4" />
+                                      </Button>
+                                    </>
+                                  ) : (
+                                    <Button
+                                      size="icon"
+                                      onClick={() => addToCart(item)}
+                                      className="w-8 h-8 rounded-full"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
 
-        {categories.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">لا توجد فئات متاحة</p>
-          </div>
-        )}
-      </main>
+            {categories.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">لا توجد فئات متاحة</p>
+              </div>
+            )}
+          </main>
+        </SidebarInset>
+      </div>
 
       {/* Cart */}
       {cart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-50">
+        <motion.div
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
+          exit={{ y: 100 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-50"
+        >
           <div className="container mx-auto">
             <div className="flex items-center justify-between mb-3">
               <span className="font-medium">
                 {cart.length} صنف - {formatPrice(totalPrice)}
               </span>
               <Button onClick={handleWhatsAppOrder} size="sm">
-                <ShoppingCart className="w-4 h-4 ml-2" />
+                <motion.div animate={controls}>
+                  <ShoppingCart className="w-4 h-4 ml-2" />
+                </motion.div>
                 إرسال عبر واتساب
               </Button>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Feedback Dialog */}
@@ -435,7 +507,7 @@ const PublicMenu = (): JSX.Element => {
           </Card>
         </div>
       )}
-    </div>
+    </SidebarProvider>
   );
 };
 
