@@ -12,6 +12,7 @@ import MenuManagement from "./pages/MenuManagement";
 import PublicMenu from "./pages/PublicMenu";
 import RestaurantBranding from "./components/branding/RestaurantBranding";
 import QRCodeGenerator from "./components/qr/QRCodeGenerator";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 import Header from "./components/Header";
 import Pricing from "./pages/Pricing";
@@ -38,6 +39,7 @@ const App = (): JSX.Element => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/analytics" element={<Analytics />} />
               <Route path="/menu-management" element={<MenuManagement />} />
               <Route path="/branding" element={<RestaurantBranding />} />
               <Route path="/qr-code" element={<QRCodeGenerator />} />

@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Menu, QrCode, Palette, Link, Copy } from "lucide-react";
+import { Building2, Menu, QrCode, Palette, Link, Copy, LineChart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -214,7 +214,7 @@ const RestaurantDashboard = (): JSX.Element => {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="shadow-card hover:shadow-warm transition-smooth cursor-pointer" onClick={() => window.location.href = '/menu-management'}>
             <CardHeader className="text-center">
               <Menu className="h-12 w-12 text-primary mx-auto mb-2" />
@@ -265,6 +265,23 @@ const RestaurantDashboard = (): JSX.Element => {
                 variant="outline"
               >
                 {t('restaurant.quickActions.qr.button')}
+              </Button>
+            </CardContent>
+          </Card>
+          <Card className="shadow-card hover:shadow-warm transition-smooth cursor-pointer" onClick={() => window.location.href = '/analytics'}>
+            <CardHeader className="text-center">
+              <LineChart className="h-12 w-12 text-green-500 mx-auto mb-2" />
+              <CardTitle>{t('restaurant.quickActions.analytics.title')}</CardTitle>
+              <CardDescription>
+                {t('restaurant.quickActions.analytics.description')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                className="w-full"
+                variant="outline"
+              >
+                {t('restaurant.quickActions.analytics.button')}
               </Button>
             </CardContent>
           </Card>

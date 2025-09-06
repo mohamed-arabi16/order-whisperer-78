@@ -99,6 +99,11 @@ const PublicMenu = (): JSX.Element => {
         } else {
           console.log('Successfully fetched menu data:', data);
           setTenant(data.tenant);
+          if (data.tenant.id) {
+            supabase.rpc('log_menu_view', { tenant_id_param: data.tenant.id }).then(({ error }) => {
+              if (error) console.error('Error logging menu view:', error);
+            });
+          }
           setCategories(data.categories);
           setMenuItems(data.menu_items);
           if (data.categories.length > 0) {
@@ -221,6 +226,14 @@ const PublicMenu = (): JSX.Element => {
 
     const whatsappUrl = `https://wa.me/${tenant.phone_number.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+
+    supabase.rpc('log_order_items', { tenant_id_param: tenant.id, items: cart }).then(({ error }) => {
+      if (error) console.error('Error logging order items:', error);
+    });
+
+    supabase.rpc('log_order', { tenant_id_param: tenant.id, total_price_param: getTotalPrice(), order_type_param: orderType }).then(({ error }) => {
+      if (error) console.error('Error logging order:', error);
+    });
   };
 
   if (loading) {
