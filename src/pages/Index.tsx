@@ -1,4 +1,4 @@
-import Features from "@/components/Features";
+import FeaturesCarousel from "@/components/FeaturesCarousel";
 import Hero from "@/components/Hero";
 import MenuDemo from "@/components/MenuDemo";
 import Parallax from "@/components/Parallax";
@@ -23,7 +23,7 @@ const Index = (): JSX.Element => {
       </Parallax>
       <div className="relative z-10 bg-background">
         <StaggeredFadeIn>
-          <Features />
+          <FeaturesCarousel />
         </StaggeredFadeIn>
         <StaggeredFadeIn>
           <MenuDemo />

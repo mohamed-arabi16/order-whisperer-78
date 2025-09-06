@@ -21,7 +21,7 @@ interface StaggeredFadeInProps {
   className?: string;
   /**
    * The amount of time to stagger the animation of each child.
-   * @default 0.1
+   * @default 0.05
    */
   stagger?: number;
   /**
@@ -46,8 +46,9 @@ const childVariants: Variants = {
     y: 0,
     transition: {
       type: "spring",
-      damping: 12,
-      stiffness: 100,
+      damping: 15,
+      stiffness: 200,
+      duration: 0.4,
     },
   },
 };
@@ -62,7 +63,7 @@ const childVariants: Variants = {
 const StaggeredFadeIn = ({
   children,
   className,
-  stagger = 0.1,
+  stagger = 0.05,
   delay = 0,
 }: StaggeredFadeInProps): JSX.Element => {
   const ref = useRef(null);

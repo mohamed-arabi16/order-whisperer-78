@@ -345,19 +345,22 @@ const PublicMenu = (): JSX.Element => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-background" dir="rtl">
-        <Sidebar side="right" className="bg-card border-l">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/50" dir="rtl">
+        <Sidebar side="right" className="bg-card/95 backdrop-blur-xl border-l border-white/10 shadow-warm">
           <SidebarHeader>
             <div className="flex items-center gap-3 p-2">
               {tenant.logo_url && (
-                <img
-                  src={tenant.logo_url}
-                  alt="شعار المطعم"
-                  className="w-12 h-12 rounded-lg object-cover"
-                />
+                <div className="relative">
+                  <img
+                    src={tenant.logo_url}
+                    alt="شعار المطعم"
+                    className="w-12 h-12 rounded-lg object-cover shadow-card"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent rounded-lg" />
+                </div>
               )}
               <div>
-                <h1 className="text-lg font-bold">{tenant.name}</h1>
+                <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">{tenant.name}</h1>
                 <p className="text-sm text-muted-foreground">{tenant.address}</p>
               </div>
             </div>
@@ -365,32 +368,40 @@ const PublicMenu = (): JSX.Element => {
           <SidebarContent>
             <SidebarMenu>
               {categories.map(category => (
-                <SidebarMenuItem key={category.id}>
-                  <SidebarMenuButton
-                    onClick={() => handleCategoryClick(category.id)}
-                    isActive={activeCategory === category.id}
-                  >
-                    <Utensils className="w-4 h-4" />
-                    <span>{category.name}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                 <SidebarMenuItem key={category.id}>
+                   <SidebarMenuButton
+                     onClick={() => handleCategoryClick(category.id)}
+                     isActive={activeCategory === category.id}
+                     className="hover:bg-primary/10 transition-all duration-200 data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border-r-2 data-[state=active]:border-primary"
+                   >
+                     <motion.div
+                       whileHover={{ scale: 1.1 }}
+                       whileTap={{ scale: 0.9 }}
+                       className="flex items-center gap-2"
+                     >
+                       <Utensils className="w-4 h-4" />
+                       <span className="font-medium">{category.name}</span>
+                     </motion.div>
+                   </SidebarMenuButton>
+                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>
         <SidebarInset>
           {/* Header */}
-          <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+          <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 border-b border-white/10 shadow-sm">
             <div className="container mx-auto px-4 py-3 flex items-center justify-between">
                <div className="flex items-center gap-2">
-                 <SidebarTrigger className="md:hidden" />
-                 <h1 className="text-lg font-bold md:hidden">{tenant.name}</h1>
+                 <SidebarTrigger className="md:hidden hover:bg-primary/10 transition-colors duration-200" />
+                 <h1 className="text-lg font-bold md:hidden bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">{tenant.name}</h1>
                </div>
                 <div className="flex items-center gap-2">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => setShowFeedback(true)}
+                    className="hover:bg-primary/10 hover:border-primary/30 transition-all duration-200"
                   >
                     <MessageCircle className="w-4 h-4 ml-2" />
                     تقييم
@@ -408,79 +419,93 @@ const PublicMenu = (): JSX.Element => {
                 if (categoryItems.length === 0) return null;
 
                 return (
-                  <section key={category.id} id={`category-${category.id}`} className="space-y-4 scroll-mt-20">
-                    <h2 className="text-2xl font-bold text-primary border-b border-border pb-2">
-                      {category.name}
-                    </h2>
+                   <section key={category.id} id={`category-${category.id}`} className="space-y-4 scroll-mt-20">
+                     <motion.h2 
+                       initial={{ opacity: 0, x: -20 }}
+                       animate={{ opacity: 1, x: 0 }}
+                       transition={{ duration: 0.5 }}
+                       className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent border-b border-primary/20 pb-2 flex items-center gap-2"
+                     >
+                       <Utensils className="w-6 h-6 text-primary" />
+                       {category.name}
+                     </motion.h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {categoryItems.map((item, index) => (
                         <motion.div
                           key={item.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.05 }}
-                          whileHover={{ scale: 1.03, y: -5 }}
+          initial={{ opacity: 0, y: 30, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, delay: index * 0.03 }}
+          whileHover={{ 
+            scale: 1.02, 
+            y: -8,
+            transition: { type: "spring", stiffness: 400, damping: 25 }
+          }}
+          className="group"
                         >
-                          <Card className="overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
-                            {item.image_url && (
-                              <LazyLoadImage
-                                alt={item.name}
-                                src={item.image_url}
-                                effect="blur"
-                                className="w-full h-40 object-cover"
-                              />
-                            )}
-                            <CardContent className="p-4 flex-1 flex flex-col justify-between">
-                              <div>
-                                <h3 className="font-bold text-lg mb-1">{item.name}</h3>
-                                {item.description && (
-                                  <p className="text-sm text-muted-foreground mb-3 min-h-[40px]">
-                                    {item.description}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex items-center justify-between mt-3">
-                                <span className="text-xl font-bold text-primary">
-                                  {formatPrice(item.price)}
-                                </span>
-                                <div className="flex items-center gap-2">
-                                  {getItemQuantity(item.id) > 0 ? (
-                                    <>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        onClick={() => removeFromCart(item.id)}
-                                        className="w-8 h-8 rounded-full"
-                                      >
-                                        <motion.div whileTap={{ scale: 0.8 }}>
-                                          <Minus className="w-4 h-4" />
-                                        </motion.div>
-                                      </Button>
-                                      <span className="text-lg font-medium w-8 text-center">
-                                        {getItemQuantity(item.id)}
-                                      </span>
-                                      <Button
-                                        size="icon"
-                                        onClick={() => addToCart(item)}
-                                        className="w-8 h-8 rounded-full"
-                                      >
-                                        <motion.div whileTap={{ scale: 0.8 }}>
-                                          <Plus className="w-4 h-4" />
-                                        </motion.div>
-                                      </Button>
-                                    </>
-                                  ) : (
-                                    <Button
-                                      size="icon"
-                                      onClick={() => addToCart(item)}
-                                      className="w-8 h-8 rounded-full"
-                                    >
-                                      <motion.div whileTap={{ scale: 0.8 }}>
-                                        <Plus className="w-4 h-4" />
-                                      </motion.div>
-                                    </Button>
-                                  )}
-                                </div>
+                           <Card className="overflow-hidden shadow-warm hover:shadow-glow transition-all duration-500 h-full flex flex-col backdrop-blur-sm bg-card/95 border border-white/10 group-hover:border-primary/30 group-hover:bg-card">
+                             {item.image_url && (
+                               <div className="relative overflow-hidden">
+                                 <LazyLoadImage
+                                   alt={item.name}
+                                   src={item.image_url}
+                                   effect="blur"
+                                   className="w-full h-40 object-cover transition-transform duration-700 group-hover:scale-110"
+                                 />
+                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                               </div>
+                             )}
+                             <CardContent className="p-4 flex-1 flex flex-col justify-between">
+                               <div>
+                                 <h3 className="font-bold text-lg mb-1 text-foreground group-hover:text-primary transition-colors duration-300">{item.name}</h3>
+                                 {item.description && (
+                                   <p className="text-sm text-muted-foreground mb-3 min-h-[40px] line-clamp-2">
+                                     {item.description}
+                                   </p>
+                                 )}
+                               </div>
+                               <div className="flex items-center justify-between mt-3">
+                                 <span className="text-xl font-bold text-primary bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+                                   {formatPrice(item.price)}
+                                 </span>
+                                 <div className="flex items-center gap-2">
+                                   {getItemQuantity(item.id) > 0 ? (
+                                     <div className="flex items-center gap-2 bg-primary/10 rounded-full p-1">
+                                       <Button
+                                         size="icon"
+                                         variant="ghost"
+                                         onClick={() => removeFromCart(item.id)}
+                                         className="w-8 h-8 rounded-full hover:bg-destructive/20 hover:text-destructive transition-all duration-200"
+                                       >
+                                         <motion.div whileTap={{ scale: 0.8 }}>
+                                           <Minus className="w-4 h-4" />
+                                         </motion.div>
+                                       </Button>
+                                       <span className="text-lg font-medium w-8 text-center text-primary">
+                                         {getItemQuantity(item.id)}
+                                       </span>
+                                       <Button
+                                         size="icon"
+                                         onClick={() => addToCart(item)}
+                                         className="w-8 h-8 rounded-full gradient-hero hover:shadow-glow transition-all duration-200"
+                                       >
+                                         <motion.div whileTap={{ scale: 0.8 }}>
+                                           <Plus className="w-4 h-4" />
+                                         </motion.div>
+                                       </Button>
+                                     </div>
+                                   ) : (
+                                     <Button
+                                       size="icon"
+                                       onClick={() => addToCart(item)}
+                                       className="w-10 h-10 rounded-full gradient-hero hover:shadow-glow hover:scale-110 transition-all duration-300"
+                                     >
+                                       <motion.div whileTap={{ scale: 0.8 }}>
+                                         <Plus className="w-5 h-5" />
+                                       </motion.div>
+                                     </Button>
+                                   )}
+                                 </div>
                               </div>
                             </CardContent>
                           </Card>
