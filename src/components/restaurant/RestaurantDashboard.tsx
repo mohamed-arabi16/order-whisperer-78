@@ -206,6 +206,7 @@ const RestaurantDashboard = (): JSX.Element => {
                 onClick={() => copyToClipboard(menuUrl)}
                 variant="outline"
                 size="sm"
+                aria-label={t('restaurant.shareableLink.copyAriaLabel')}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -215,7 +216,17 @@ const RestaurantDashboard = (): JSX.Element => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="shadow-card hover:shadow-warm transition-smooth cursor-pointer" onClick={() => window.location.href = '/menu-management'}>
+          <Card
+            className="shadow-card hover:shadow-warm transition-smooth cursor-pointer"
+            onClick={() => window.location.href = '/menu-management'}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                window.location.href = '/menu-management';
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
             <CardHeader className="text-center">
               <Menu className="h-12 w-12 text-primary mx-auto mb-2" />
               <CardTitle>{t('restaurant.quickActions.menu.title')}</CardTitle>
@@ -233,7 +244,17 @@ const RestaurantDashboard = (): JSX.Element => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-card hover:shadow-warm transition-smooth cursor-pointer" onClick={() => window.location.href = '/branding'}>
+          <Card
+            className="shadow-card hover:shadow-warm transition-smooth cursor-pointer"
+            onClick={() => window.location.href = '/branding'}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                window.location.href = '/branding';
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
             <CardHeader className="text-center">
               <Palette className="h-12 w-12 text-accent mx-auto mb-2" />
               <CardTitle>{t('restaurant.quickActions.branding.title')}</CardTitle>
@@ -251,7 +272,17 @@ const RestaurantDashboard = (): JSX.Element => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-card hover:shadow-warm transition-smooth cursor-pointer" onClick={() => window.location.href = '/qr-code'}>
+          <Card
+            className="shadow-card hover:shadow-warm transition-smooth cursor-pointer"
+            onClick={() => window.location.href = '/qr-code'}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                window.location.href = '/qr-code';
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
             <CardHeader className="text-center">
               <QrCode className="h-12 w-12 text-warm-orange mx-auto mb-2" />
               <CardTitle>{t('restaurant.quickActions.qr.title')}</CardTitle>
@@ -268,7 +299,17 @@ const RestaurantDashboard = (): JSX.Element => {
               </Button>
             </CardContent>
           </Card>
-          <Card className="shadow-card hover:shadow-warm transition-smooth cursor-pointer" onClick={() => window.location.href = '/analytics'}>
+          <Card
+            className="shadow-card hover:shadow-warm transition-smooth cursor-pointer"
+            onClick={() => window.location.href = '/analytics'}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                window.location.href = '/analytics';
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
             <CardHeader className="text-center">
               <LineChart className="h-12 w-12 text-green-500 mx-auto mb-2" />
               <CardTitle>{t('restaurant.quickActions.analytics.title')}</CardTitle>
