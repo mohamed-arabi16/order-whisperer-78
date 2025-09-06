@@ -24,7 +24,14 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, Building2, Settings, Search, Download, LineChart } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, Plus, Users, Building2, Settings, Search, Download, LineChart, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Papa from "papaparse";
@@ -32,6 +39,7 @@ import CreateTenantDialog from "./CreateTenantDialog";
 import EditTenantDialog from "./EditTenantDialog";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 /**
  * Represents a tenant with its associated owner information.
@@ -70,6 +78,8 @@ const SuperAdminDashboard = (): JSX.Element => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [planFilter, setPlanFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTenants, setSelectedTenants] = useState<string[]>([]);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const itemsPerPage = 5;
 
   const filteredTenants = useMemo(() => {
@@ -99,6 +109,51 @@ const SuperAdminDashboard = (): JSX.Element => {
     currentPage * itemsPerPage
   );
 
+  const handleSelectTenant = (tenantId: string) => {
+    setSelectedTenants(prev =>
+      prev.includes(tenantId)
+        ? prev.filter(id => id !== tenantId)
+        : [...prev, tenantId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedTenants.length === paginatedTenants.length) {
+      setSelectedTenants([]);
+    } else {
+      setSelectedTenants(paginatedTenants.map(t => t.id));
+    }
+  };
+
+  const handleBulkAction = async (action: 'activate' | 'deactivate') => {
+    setIsBulkProcessing(true);
+    try {
+      const { error } = await supabase
+        .from('tenants')
+        .update({ is_active: action === 'activate' })
+        .in('id', selectedTenants);
+
+      if (error) throw error;
+
+      toast({
+        title: t('superAdmin.bulkActions.successTitle'),
+        description: t('superAdmin.bulkActions.successDescription', { count: selectedTenants.length, action: t(`common.${action}d`) }),
+      });
+
+      fetchTenants();
+      setSelectedTenants([]);
+    } catch (error) {
+      console.error(`Error ${action} tenants:`, error);
+      toast({
+        variant: "destructive",
+        title: t('superAdmin.errors.bulkActionTitle'),
+        description: t('superAdmin.errors.bulkActionDescription'),
+      });
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
   useEffect(() => {
     fetchTenants();
   }, []);
@@ -117,6 +172,11 @@ const SuperAdminDashboard = (): JSX.Element => {
       setTenants(data || []);
     } catch (error) {
       console.error('Error fetching tenants:', error);
+      toast({
+        variant: "destructive",
+        title: t('superAdmin.errors.fetchTenantsTitle'),
+        description: t('superAdmin.errors.fetchTenantsDescription'),
+      });
     } finally {
       setLoading(false);
     }
@@ -338,29 +398,67 @@ const SuperAdminDashboard = (): JSX.Element => {
               </div>
             ) : (
               <>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="select-all"
+                      checked={selectedTenants.length === paginatedTenants.length && paginatedTenants.length > 0}
+                      onCheckedChange={handleSelectAll}
+                    />
+                    <label htmlFor="select-all" className="text-sm font-medium">
+                      {t('superAdmin.bulkActions.selectAll', { count: selectedTenants.length })}
+                    </label>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" disabled={selectedTenants.length === 0 || isBulkProcessing}>
+                        {isBulkProcessing ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <MoreHorizontal className="h-4 w-4 mr-2" />
+                        )}
+                        {isBulkProcessing ? t('common.processing') : t('superAdmin.bulkActions.title')}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => handleBulkAction('activate')}>
+                        {t('superAdmin.bulkActions.activate')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleBulkAction('deactivate')}>
+                        {t('superAdmin.bulkActions.deactivate')}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
                 <div className="space-y-4">
                   {paginatedTenants.map((tenant) => (
                     <div
                       key={tenant.id}
                       className="flex items-center justify-between p-4 border rounded-lg bg-card hover:shadow-md transition-smooth"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-lg">{tenant.name}</h3>
-                        <Badge 
-                          variant={tenant.is_active ? "default" : "secondary"}
-                          className={tenant.is_active ? "bg-fresh-green" : ""}
-                        >
-                          {tenant.is_active ? t('common.active') : t('common.inactive')}
-                        </Badge>
-                        <Badge variant="outline">
-                          {t(`plans.${tenant.subscription_plan}` as any)}
-                        </Badge>
-                      </div>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <p>{t('superAdmin.tenant.owner')}: {tenant.owner?.full_name}</p>
-                        <p>{t('superAdmin.tenant.email')}: {tenant.owner?.email}</p>
-                        <p>{t('superAdmin.tenant.registrationDate')}: {new Date(tenant.created_at).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}</p>
+                    <div className="flex items-center gap-4 flex-1">
+                      <Checkbox
+                        checked={selectedTenants.includes(tenant.id)}
+                        onCheckedChange={() => handleSelectTenant(tenant.id)}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-medium text-lg">{tenant.name}</h3>
+                          <Badge
+                            variant={tenant.is_active ? "default" : "secondary"}
+                            className={tenant.is_active ? "bg-fresh-green" : ""}
+                          >
+                            {tenant.is_active ? t('common.active') : t('common.inactive')}
+                          </Badge>
+                          <Badge variant="outline">
+                            {t(`plans.${tenant.subscription_plan}` as any)}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <p>{t('superAdmin.tenant.owner')}: {tenant.owner?.full_name}</p>
+                          <p>{t('superAdmin.tenant.email')}: {tenant.owner?.email}</p>
+                          <p>{t('superAdmin.tenant.registrationDate')}: {new Date(tenant.created_at).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}</p>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
