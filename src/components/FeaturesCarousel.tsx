@@ -24,6 +24,7 @@ const FeaturesCarousel = (): JSX.Element => {
     slidesToScroll: 1,
     containScroll: "trimSnaps",
     direction: isRTL ? "rtl" : "ltr",
+    skipSnaps: false,
   });
 
   const features = [
@@ -72,13 +73,13 @@ const FeaturesCarousel = (): JSX.Element => {
 
     const autoplay = setInterval(() => {
       emblaApi.scrollNext();
-    }, 4000);
+    }, 6000);
 
     const onMouseEnter = () => clearInterval(autoplay);
     const onMouseLeave = () => {
       const newAutoplay = setInterval(() => {
         emblaApi.scrollNext();
-      }, 4000);
+      }, 6000);
       clearInterval(autoplay);
       return newAutoplay;
     };
@@ -114,33 +115,51 @@ const FeaturesCarousel = (): JSX.Element => {
         <div className="relative">
           {/* Carousel Container */}
           <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex gap-6">
-              {features.map((feature, index) => (
-                <motion.div
-                  key={index}
-                  className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                >
-                  <Card className="h-full gradient-card shadow-card hover:shadow-warm transition-all duration-500 border-0 backdrop-blur-sm bg-card/80">
-                    <CardContent className="p-6 h-full flex flex-col">
-                      <div
-                        className={`w-12 h-12 gradient-hero rounded-lg ${
-                          isRTL ? "ml-auto" : "mr-auto"
-                        } mb-4 flex items-center justify-center shadow-glow`}
-                      >
-                        <feature.icon className="h-6 w-6 text-primary-foreground" />
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2 text-foreground">
-                        {feature.title}
-                      </h3>
-                      <p className="text-muted-foreground text-sm leading-relaxed flex-1">
-                        {feature.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+            <div className="flex">
+              {features.concat(features, features).map((feature, index) => {
+                const isCenter = Math.abs((index % features.length) - Math.floor(features.length / 2)) === 0;
+                return (
+                  <motion.div
+                    key={index}
+                    className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 px-3"
+                    initial={{ opacity: 0.4, scale: 0.8 }}
+                    animate={{ 
+                      opacity: isCenter ? 1 : 0.4, 
+                      scale: isCenter ? 1 : 0.8 
+                    }}
+                    whileHover={{ scale: isCenter ? 1.02 : 0.82 }}
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 300, 
+                      damping: 30,
+                      opacity: { duration: 0.5 },
+                      scale: { duration: 0.5 }
+                    }}
+                  >
+                    <Card className={`h-full transition-all duration-500 border-0 backdrop-blur-sm ${
+                      isCenter 
+                        ? 'gradient-card shadow-warm bg-card/90' 
+                        : 'bg-card/40 shadow-card'
+                    }`}>
+                      <CardContent className="p-6 h-full flex flex-col">
+                        <div
+                          className={`w-12 h-12 ${isCenter ? 'gradient-hero' : 'bg-muted'} rounded-lg ${
+                            isRTL ? "ml-auto" : "mr-auto"
+                          } mb-4 flex items-center justify-center ${isCenter ? 'shadow-glow' : ''}`}
+                        >
+                          <feature.icon className={`h-6 w-6 ${isCenter ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                        </div>
+                        <h3 className={`text-lg font-semibold mb-2 ${isCenter ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          {feature.title}
+                        </h3>
+                        <p className={`text-sm leading-relaxed flex-1 ${isCenter ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
+                          {feature.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
 

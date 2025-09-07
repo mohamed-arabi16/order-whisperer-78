@@ -1,35 +1,28 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Minus, Plus, ShoppingCart, Star, MessageCircle, Utensils, Loader2 } from "lucide-react";
-import { motion, useAnimation } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Minus, Plus, ShoppingCart, Star, MessageCircle, Search, Heart, 
+  X, ArrowLeft, Clock, Loader2, Phone, MapPin, Utensils
+} from "lucide-react";
+import { motion, useAnimation, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useScrollSpy } from "@/hooks/useScrollSpy";
-import { useInView } from "react-intersection-observer";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
-import { Textarea } from "@/components/ui/textarea";
 import { generateWhatsAppMessage, openWhatsApp, validatePhoneNumber } from "@/lib/whatsapp";
 import PublicMenuSkeleton from "@/components/menu/PublicMenuSkeleton";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarInset,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
 
 interface Tenant {
-  id:string;
+  id: string;
   name: string;
   slug: string;
   phone_number: string | null;
@@ -55,6 +48,7 @@ interface MenuItem {
   category_id: string;
   is_available: boolean;
   display_order: number;
+  is_featured?: boolean;
 }
 
 interface CartItem {
@@ -66,548 +60,730 @@ interface CartItem {
 
 const PublicMenu = (): JSX.Element => {
   const { slug } = useParams();
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
   
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedback, setFeedback] = useState({ rating: 0, comment: "" });
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const { ref, inView } = useInView({
-    threshold: 0,
-  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [showCart, setShowCart] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState<string | null>(null);
 
-  const categorySelectors = useMemo(() => categories.map(c => `#category-${c.id}`), [categories]);
-  const activeCategoryId = useScrollSpy(categorySelectors, {
-    rootMargin: '0px 0px -50% 0px',
-  });
+  // Animation controls
+  const cartAnimation = useAnimation();
+  const categoryTabsRef = useRef<HTMLDivElement>(null);
 
+  // Fetch initial data
   useEffect(() => {
-    if (activeCategoryId) {
-      setActiveCategory(activeCategoryId.replace('category-', ''));
-    }
-  }, [activeCategoryId]);
-
-  const ITEMS_PER_PAGE = 20;
-
-  const loadMoreItems = async () => {
-    if (isFetchingMore || !hasMore || !tenant?.id) return;
-
-    setIsFetchingMore(true);
-    try {
-      const { data: itemsData, error: itemsError } = await supabase
-        .from("menu_items")
-        .select("*")
-        .eq("tenant_id", tenant.id)
-        .order("display_order")
-        .range(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE - 1);
-
-      if (itemsError) {
-        throw itemsError;
-      }
-
-      setMenuItems(prev => [...prev, ...itemsData]);
-      setPage(prev => prev + 1);
-      if (itemsData.length < ITEMS_PER_PAGE) {
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error("Error fetching more menu items:", err);
-      toast.error("Failed to load more items.");
-    } finally {
-      setIsFetchingMore(false);
-    }
-  };
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchData = async () => {
       if (!slug) return;
 
       setLoading(true);
+      setError(null);
+
       try {
+        // Fetch tenant
         const { data: tenantData, error: tenantError } = await supabase
-          .from("tenants")
-          .select("*")
-          .eq("slug", slug)
-          .eq("is_active", true)
+          .from('tenants')
+          .select('*')
+          .eq('slug', slug)
           .single();
 
-        if (tenantError || !tenantData) {
-          setError("المطعم غير موجود");
-          setLoading(false);
-          return;
-        }
+        if (tenantError) throw tenantError;
+        if (!tenantData) throw new Error('Restaurant not found');
 
         setTenant(tenantData);
 
-        const { data: categoriesData } = await supabase
-          .from("menu_categories")
-          .select("*")
-          .eq("tenant_id", tenantData.id)
-          .eq("is_active", true)
-          .order("display_order");
+        // Fetch categories
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('menu_categories')
+          .select('*')
+          .eq('tenant_id', tenantData.id)
+          .eq('is_active', true)
+          .order('display_order');
 
+        if (categoriesError) throw categoriesError;
         setCategories(categoriesData || []);
-        if (categoriesData && categoriesData.length > 0 && !activeCategory) {
+
+        // Fetch menu items
+        const { data: itemsData, error: itemsError } = await supabase
+          .from('menu_items')
+          .select('*')
+          .eq('tenant_id', tenantData.id)
+          .eq('is_available', true)
+          .order('display_order');
+
+        if (itemsError) throw itemsError;
+        setMenuItems(itemsData || []);
+
+        if (categoriesData && categoriesData.length > 0) {
           setActiveCategory(categoriesData[0].id);
         }
 
-        setError(null);
-      } catch (err) {
-        console.error("Unexpected error:", err);
-        setError("حدث خطأ غير متوقع");
+      } catch (error: any) {
+        console.error('Error fetching menu data:', error);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchInitialData();
+    fetchData();
   }, [slug]);
 
-  useEffect(() => {
-    if (tenant?.id) {
-      loadMoreItems();
+  // Cart functions
+  const addToCart = async (item: MenuItem) => {
+    setIsAddingToCart(item.id);
+    
+    const existingItem = cart.find(cartItem => cartItem.id === item.id);
+    if (existingItem) {
+      setCart(cart.map(cartItem =>
+        cartItem.id === item.id
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
+      ));
+    } else {
+      setCart([...cart, { 
+        id: item.id, 
+        name: item.name, 
+        price: item.price, 
+        quantity: 1 
+      }]);
     }
-  }, [tenant?.id]);
 
-  useEffect(() => {
-    if (inView && hasMore && !isFetchingMore) {
-      loadMoreItems();
-    }
-  }, [inView, hasMore, isFetchingMore]);
-
-  const addToCart = (item: MenuItem) => {
-    setCart(prev => {
-      const existing = prev.find(cartItem => cartItem.id === item.id);
-      if (existing) {
-        return prev.map(cartItem =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
-      }
-      return [...prev, { id: item.id, name: item.name, price: item.price, quantity: 1 }];
+    // Animate cart icon
+    await cartAnimation.start({
+      scale: [1, 1.2, 1],
+      transition: { duration: 0.3 }
     });
-    toast.success(`${item.name} ${t('publicMenu.addToCart')}`);
+
+    toast.success(`${item.name} أُضيف إلى السلة`, {
+      duration: 2000,
+    });
+
+    setTimeout(() => setIsAddingToCart(null), 300);
   };
 
   const removeFromCart = (itemId: string) => {
-    const item = menuItems.find(i => i.id === itemId);
-    setCart(prev => {
-      const existing = prev.find(cartItem => cartItem.id === itemId);
-      if (existing && existing.quantity > 1) {
-        return prev.map(cartItem =>
-          cartItem.id === itemId
-            ? { ...cartItem, quantity: cartItem.quantity - 1 }
-            : cartItem
-        );
-      }
-      return prev.filter(cartItem => cartItem.id !== itemId);
-    });
-    if (item) {
-      toast.error(`${item.name} ${t('publicMenu.removeFromCart')}`);
+    const existingItem = cart.find(cartItem => cartItem.id === itemId);
+    if (existingItem && existingItem.quantity > 1) {
+      setCart(cart.map(cartItem =>
+        cartItem.id === itemId
+          ? { ...cartItem, quantity: cartItem.quantity - 1 }
+          : cartItem
+      ));
+    } else {
+      setCart(cart.filter(cartItem => cartItem.id !== itemId));
     }
   };
 
-  const getItemQuantity = (itemId: string) => {
-    return cart.find(item => item.id === itemId)?.quantity || 0;
+  const getItemQuantity = (itemId: string): number => {
+    const item = cart.find(cartItem => cartItem.id === itemId);
+    return item ? item.quantity : 0;
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("ar-LB").format(price) + " ل.ل";
+  const toggleFavorite = (itemId: string) => {
+    const newFavorites = new Set(favorites);
+    if (newFavorites.has(itemId)) {
+      newFavorites.delete(itemId);
+      toast.success("تم إزالة العنصر من المفضلة");
+    } else {
+      newFavorites.add(itemId);
+      toast.success("تم إضافة العنصر إلى المفضلة");
+    }
+    setFavorites(newFavorites);
   };
 
-  const getItemsForCategory = (categoryId: string) => {
-    return menuItems.filter(item => item.category_id === categoryId && item.is_available);
-  };
-
-  const handleCategoryClick = (categoryId: string) => {
+  const scrollToCategory = (categoryId: string) => {
     const element = document.getElementById(`category-${categoryId}`);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      element.scrollIntoView({ behavior: 'smooth' });
+      setActiveCategory(categoryId);
     }
+  };
+
+  // Filter items based on search and category
+  const filteredItems = useMemo(() => {
+    let items = menuItems;
+    
+    if (searchQuery) {
+      items = items.filter(item => 
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    return items;
+  }, [menuItems, searchQuery]);
+
+  const getItemsForCategory = (categoryId: string) => {
+    return filteredItems.filter(item => item.category_id === categoryId);
   };
 
   const totalPrice = useMemo(() => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   }, [cart]);
 
-  const controls = useAnimation();
-  useEffect(() => {
-    if (totalPrice > 0) {
-      controls.start({
-        scale: [1, 1.2, 1],
-        transition: { duration: 0.3 }
-      });
-    }
-  }, [totalPrice, controls]);
+  const totalItems = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.quantity, 0);
+  }, [cart]);
 
-  const handleSubmitFeedback = async () => {
-    if (!tenant) return;
-    
-    try {
-      const { error } = await supabase
-        .from("feedback")
-        .insert({
-          tenant_id: tenant.id,
-          rating: feedback.rating,
-          comment: feedback.comment,
-        });
-
-      if (error) {
-        toast.error("فشل في إرسال التقييم");
-        return;
-      }
-
-      toast.success("تم إرسال التقييم بنجاح");
-      setFeedback({ rating: 0, comment: "" });
-      setShowFeedback(false);
-    } catch (err) {
-      console.error("Error submitting feedback:", err);
-      toast.error("حدث خطأ غير متوقع");
-    }
+  const formatPrice = (price: number): string => {
+    return `${price.toLocaleString()} ل.س`;
   };
 
   const handleWhatsAppOrder = async () => {
     if (!tenant?.phone_number) {
-      toast.error(t('publicMenu.errors.phoneNotAvailable'));
+      toast.error("رقم هاتف المطعم غير متوفر");
       return;
     }
 
     if (!validatePhoneNumber(tenant.phone_number)) {
-      toast.error(t('publicMenu.errors.invalidPhone'));
-      console.error("Invalid phone number provided:", tenant.phone_number);
+      toast.error("رقم هاتف المطعم غير صحيح");
+      return;
+    }
+
+    if (cart.length === 0) {
+      toast.error("السلة فارغة");
       return;
     }
 
     setIsProcessingOrder(true);
+
     try {
-      // Log order items
-      await supabase.rpc('log_order_items', {
-        tenant_id_param: tenant.id,
-        items: cart.map(item => ({
-          id: item.id,
-          quantity: item.quantity,
-        })),
-      });
+      // Log order for analytics (best effort, don't fail if it doesn't work)
+      try {
+        await supabase.rpc('log_menu_view', {
+          tenant_id_param: tenant.id
+        });
+      } catch (error) {
+        console.log('Analytics logging failed:', error);
+      }
 
-      // Log order
-      await supabase.rpc('log_order', {
-        tenant_id_param: tenant.id,
-        total_price_param: totalPrice,
-        order_type_param: 'whatsapp',
-      });
-
+      // Generate WhatsApp message
       const message = generateWhatsAppMessage({
         restaurantName: tenant.name,
         items: cart,
-        orderType: t('publicMenu.orderType.whatsapp'),
-        totalPrice: totalPrice,
+        orderType: 'طلب توصيل',
+        totalPrice: totalPrice
       });
-
       openWhatsApp(tenant.phone_number, message);
-      
-      setCart([]); // Clear cart after sending
-      toast.success(t('publicMenu.toast.orderSuccess'));
-    } catch (err) {
-      console.error("Error processing order:", err);
-      toast.error(t('publicMenu.errors.orderProcessing'));
+
+      // Clear cart
+      setCart([]);
+      setShowCart(false);
+      toast.success("تم إرسال طلبك عبر الواتساب!");
+
+    } catch (error: any) {
+      console.error('Error processing order:', error);
+      toast.error("حدث خطأ أثناء معالجة الطلب");
     } finally {
       setIsProcessingOrder(false);
     }
   };
 
-  if (loading) {
-    return <PublicMenuSkeleton />;
-  }
-
-  if (error || !tenant) {
+  if (loading) return <PublicMenuSkeleton />;
+  
+  if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">المطعم غير موجود</h1>
-          <p className="text-muted-foreground mb-8">يرجى التحقق من الرابط والمحاولة مرة أخرى</p>
-          <Button onClick={() => window.location.reload()} variant="outline">
-            إعادة المحاولة
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center p-4" dir={isRTL ? 'rtl' : 'ltr'}>
+        <Card className="max-w-md w-full shadow-warm text-center">
+          <CardContent className="p-8">
+            <div className="text-destructive text-6xl mb-4">⚠️</div>
+            <h2 className="text-xl font-bold mb-2">خطأ في تحميل القائمة</h2>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>
+              إعادة المحاولة
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
+  if (!tenant) return null;
+
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/50" dir="rtl">
-        <Sidebar side="right" className="bg-card/95 backdrop-blur-xl border-l border-white/10 shadow-warm">
-          <SidebarHeader>
-            <div className="flex items-center gap-3 p-2">
+    <div className="min-h-screen bg-gradient-subtle" dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Restaurant Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b shadow-elegant">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
               {tenant.logo_url && (
-                <div className="relative">
-                  <img
-                    src={tenant.logo_url}
-                    alt="شعار المطعم"
-                    className="w-12 h-12 rounded-lg object-cover shadow-card"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent rounded-lg" />
-                </div>
+                <LazyLoadImage
+                  src={tenant.logo_url}
+                  alt={tenant.name}
+                  className="w-12 h-12 rounded-full object-cover shadow-glow"
+                  effect="blur"
+                />
               )}
               <div>
-                <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">{tenant.name}</h1>
-                <p className="text-sm text-muted-foreground">{tenant.address}</p>
-              </div>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              {categories.map(category => (
-                 <SidebarMenuItem key={category.id}>
-                   <SidebarMenuButton
-                     onClick={() => handleCategoryClick(category.id)}
-                     isActive={activeCategory === category.id}
-                     className="hover:bg-primary/10 transition-all duration-200 data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border-r-2 data-[state=active]:border-primary"
-                   >
-                     <motion.div
-                       whileHover={{ scale: 1.1 }}
-                       whileTap={{ scale: 0.9 }}
-                       className="flex items-center gap-2"
-                     >
-                       <Utensils className="w-4 h-4" />
-                       <span className="font-medium">{category.name}</span>
-                     </motion.div>
-                   </SidebarMenuButton>
-                 </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarContent>
-        </Sidebar>
-        <SidebarInset>
-          {/* Header */}
-          <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 border-b border-white/10 shadow-sm">
-            <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-               <div className="flex items-center gap-2">
-                 <SidebarTrigger className="md:hidden hover:bg-primary/10 transition-colors duration-200" />
-                 <h1 className="text-lg font-bold md:hidden bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">{tenant.name}</h1>
-               </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowFeedback(true)}
-                    className="hover:bg-primary/10 hover:border-primary/30 transition-all duration-200"
-                  >
-                    <MessageCircle className="w-4 h-4 ml-2" />
-                    تقييم
-                  </Button>
-                  <LanguageSwitcher />
-                </div>
-            </div>
-          </header>
-
-          <main className="container mx-auto px-4 py-6 pb-24">
-            {/* Menu Items */}
-            <div className="space-y-8">
-              {categories.map(category => {
-                const categoryItems = getItemsForCategory(category.id);
-                if (categoryItems.length === 0) return null;
-
-                return (
-                   <section key={category.id} id={`category-${category.id}`} className="space-y-4 scroll-mt-20">
-                     <motion.h2 
-                       initial={{ opacity: 0, x: -20 }}
-                       animate={{ opacity: 1, x: 0 }}
-                       transition={{ duration: 0.5 }}
-                       className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent border-b border-primary/20 pb-2 flex items-center gap-2"
-                     >
-                       <Utensils className="w-6 h-6 text-primary" />
-                       {category.name}
-                     </motion.h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {categoryItems.map((item, index) => (
-                        <motion.div
-                          key={item.id}
-          initial={{ opacity: 0, y: 30, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.5, delay: index * 0.03 }}
-          whileHover={{ 
-            scale: 1.02, 
-            y: -8,
-            transition: { type: "spring", stiffness: 400, damping: 25 }
-          }}
-          className="group"
-                        >
-                           <Card className="overflow-hidden shadow-warm hover:shadow-glow transition-all duration-500 h-full flex flex-col backdrop-blur-sm bg-card/95 border border-white/10 group-hover:border-primary/30 group-hover:bg-card">
-                             {item.image_url && (
-                               <div className="relative overflow-hidden">
-                                 <LazyLoadImage
-                                   alt={item.name}
-                                   src={item.image_url}
-                                   effect="blur"
-                                   className="w-full h-40 object-cover transition-transform duration-700 group-hover:scale-110"
-                                 />
-                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                               </div>
-                             )}
-                             <CardContent className="p-4 flex-1 flex flex-col justify-between">
-                               <div>
-                                 <h3 className="font-bold text-lg mb-1 text-foreground group-hover:text-primary transition-colors duration-300">{item.name}</h3>
-                                 {item.description && (
-                                   <p className="text-sm text-muted-foreground mb-3 min-h-[40px] line-clamp-2">
-                                     {item.description}
-                                   </p>
-                                 )}
-                               </div>
-                               <div className="flex items-center justify-between mt-3">
-                                 <span className="text-xl font-bold text-primary bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                                   {formatPrice(item.price)}
-                                 </span>
-                                 <div className="flex items-center gap-2">
-                                   {getItemQuantity(item.id) > 0 ? (
-                                     <div className="flex items-center gap-2 bg-primary/10 rounded-full p-1">
-                                       <Button
-                                         size="icon"
-                                         variant="ghost"
-                                         onClick={() => removeFromCart(item.id)}
-                                         className="w-8 h-8 rounded-full hover:bg-destructive/20 hover:text-destructive transition-all duration-200"
-                                       >
-                                         <motion.div whileTap={{ scale: 0.8 }}>
-                                           <Minus className="w-4 h-4" />
-                                         </motion.div>
-                                       </Button>
-                                       <span className="text-lg font-medium w-8 text-center text-primary">
-                                         {getItemQuantity(item.id)}
-                                       </span>
-                                       <Button
-                                         size="icon"
-                                         onClick={() => addToCart(item)}
-                                         className="w-8 h-8 rounded-full gradient-hero hover:shadow-glow transition-all duration-200"
-                                       >
-                                         <motion.div whileTap={{ scale: 0.8 }}>
-                                           <Plus className="w-4 h-4" />
-                                         </motion.div>
-                                       </Button>
-                                     </div>
-                                   ) : (
-                                     <Button
-                                       size="icon"
-                                       onClick={() => addToCart(item)}
-                                       className="w-10 h-10 rounded-full gradient-hero hover:shadow-glow hover:scale-110 transition-all duration-300"
-                                     >
-                                       <motion.div whileTap={{ scale: 0.8 }}>
-                                         <Plus className="w-5 h-5" />
-                                       </motion.div>
-                                     </Button>
-                                   )}
-                                 </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </section>
-                );
-              })}
-            </div>
-
-            {categories.length === 0 && !loading && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">لا توجد فئات متاحة</p>
-              </div>
-            )}
-
-            {hasMore && (
-              <div ref={ref} className="flex justify-center py-6">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            )}
-          </main>
-        </SidebarInset>
-      </div>
-
-      {/* Cart */}
-      {cart.length > 0 && (
-        <motion.div
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          exit={{ y: 100 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-3 md:p-4 z-50"
-        >
-          <div className="container mx-auto">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-sm md:text-base">
-                {cart.length} صنف - {formatPrice(totalPrice)}
-              </span>
-              <Button onClick={handleWhatsAppOrder} size="sm" disabled={isProcessingOrder}>
-                {isProcessingOrder ? (
-                  <Loader2 className="w-4 h-4 md:ml-2 animate-spin" />
-                ) : (
-                  <motion.div animate={controls}>
-                    <ShoppingCart className="w-4 h-4 ml-2" />
-                  </motion.div>
+                <h1 className="text-xl font-bold gradient-hero bg-clip-text text-transparent">
+                  {tenant.name}
+                </h1>
+                {tenant.address && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {tenant.address}
+                  </p>
                 )}
-                {isProcessingOrder ? 'جاري الإرسال...' : 'إرسال عبر واتساب'}
-              </Button>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              {tenant.phone_number && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => window.open(`tel:${tenant.phone_number}`)}
+                  className="hidden sm:flex"
+                >
+                  <Phone className="w-4 h-4 ml-1" />
+                  اتصل بنا
+                </Button>
+              )}
             </div>
           </div>
-        </motion.div>
-      )}
+        </div>
+      </div>
 
-      {/* Feedback Dialog */}
-      {showFeedback && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>تقييم تجربتك</CardTitle>
-              <CardDescription>كيف كانت تجربتك مع {tenant.name}؟</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-center gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    className={`w-8 h-8 cursor-pointer ${
-                      feedback.rating >= star 
-                        ? "text-yellow-400 fill-yellow-400" 
-                        : "text-gray-300"
-                    }`}
-                    onClick={() => setFeedback(prev => ({ ...prev, rating: star }))}
-                  />
+      {/* Search Bar */}
+      <div className="sticky top-[88px] z-40 bg-background/95 backdrop-blur-md border-b">
+        <div className="container mx-auto px-4 py-3">
+          <div className="relative max-w-md mx-auto">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="ابحث عن الأطباق..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 rounded-full border-0 bg-muted/50 focus:bg-background transition-colors"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Category Tabs */}
+      <div className="sticky top-[144px] z-30 bg-background/90 backdrop-blur-md border-b">
+        <div className="container mx-auto px-4">
+          <div 
+            ref={categoryTabsRef}
+            className="flex overflow-x-auto scrollbar-hide gap-2 py-3"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={activeCategory === category.id ? "default" : "ghost"}
+                size="sm"
+                onClick={() => scrollToCategory(category.id)}
+                className={`whitespace-nowrap rounded-full transition-all ${
+                  activeCategory === category.id 
+                    ? 'bg-primary text-primary-foreground shadow-glow' 
+                    : 'hover:bg-muted/80'
+                }`}
+              >
+                {category.name}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Menu Content */}
+      <div className="container mx-auto px-4 py-6 pb-32">
+        {categories.map((category) => {
+          const categoryItems = getItemsForCategory(category.id);
+          if (categoryItems.length === 0 && searchQuery) return null;
+          
+          return (
+            <motion.section
+              key={category.id}
+              id={`category-${category.id}`}
+              className="mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="flex items-center gap-2 mb-6">
+                <Utensils className="w-6 h-6 text-primary" />
+                <h2 className="text-2xl font-bold">{category.name}</h2>
+                <Separator className="flex-1" />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {categoryItems.map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <Card className="group overflow-hidden hover:shadow-warm transition-all duration-300 glass border-0">
+                      <div className="relative">
+                        {/* Image */}
+                        <div className="relative aspect-square overflow-hidden bg-muted">
+                          {item.image_url ? (
+                            <LazyLoadImage
+                              src={item.image_url}
+                              alt={item.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              effect="blur"
+                              onClick={() => setSelectedItem(item)}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-subtle">
+                              <Utensils className="w-12 h-12 text-muted-foreground" />
+                            </div>
+                          )}
+                          
+                          {/* Favorite Button */}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="absolute top-2 right-2 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
+                            onClick={() => toggleFavorite(item.id)}
+                          >
+                            <Heart 
+                              className={`w-4 h-4 transition-colors ${
+                                favorites.has(item.id) 
+                                  ? 'fill-red-500 text-red-500' 
+                                  : 'text-muted-foreground'
+                              }`}
+                            />
+                          </Button>
+
+                          {/* Featured Badge */}
+                          {item.is_featured && (
+                            <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground">
+                              مُوصى
+                            </Badge>
+                          )}
+                        </div>
+
+                        <CardContent className="p-4">
+                          <div className="space-y-2">
+                            <h3 className="font-semibold text-lg leading-tight">{item.name}</h3>
+                            {item.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {item.description}
+                              </p>
+                            )}
+                            
+                            <div className="flex items-center justify-between pt-2">
+                              <span className="text-lg font-bold text-primary">
+                                {formatPrice(item.price)}
+                              </span>
+                              
+                              {getItemQuantity(item.id) > 0 ? (
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => removeFromCart(item.id)}
+                                    className="h-8 w-8 p-0 rounded-full"
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </Button>
+                                  <span className="font-medium min-w-[24px] text-center">
+                                    {getItemQuantity(item.id)}
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => addToCart(item)}
+                                    className="h-8 w-8 p-0 rounded-full"
+                                    disabled={isAddingToCart === item.id}
+                                  >
+                                    {isAddingToCart === item.id ? (
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : (
+                                      <Plus className="w-3 h-3" />
+                                    )}
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  onClick={() => addToCart(item)}
+                                  className="rounded-full hover-lift"
+                                  disabled={isAddingToCart === item.id}
+                                >
+                                  {isAddingToCart === item.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin ml-1" />
+                                  ) : (
+                                    <Plus className="w-4 h-4 ml-1" />
+                                  )}
+                                  إضافة
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </div>
+                    </Card>
+                  </motion.div>
                 ))}
               </div>
-              <Textarea
-                placeholder="تعليق اختياري..."
-                value={feedback.comment}
-                onChange={(e) => setFeedback(prev => ({ ...prev, comment: e.target.value }))}
-              />
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleSubmitFeedback}
-                  disabled={feedback.rating === 0}
-                  className="flex-1"
-                >
-                  إرسال التقييم
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowFeedback(false)}
-                >
-                  إلغاء
-                </Button>
+
+              {categoryItems.length === 0 && (
+                <div className="text-center py-12">
+                  <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    {searchQuery ? 'لا توجد أطباق تطابق البحث' : 'لا توجد أطباق في هذا القسم'}
+                  </p>
+                </div>
+              )}
+            </motion.section>
+          );
+        })}
+      </div>
+
+      {/* Floating Cart Button */}
+      <AnimatePresence>
+        {cart.length > 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50"
+          >
+            <motion.div animate={cartAnimation}>
+              <Button
+                onClick={() => setShowCart(true)}
+                size="lg"
+                className="rounded-full shadow-glow px-6 py-3 bg-primary hover:bg-primary/90"
+              >
+                <ShoppingCart className="w-5 h-5 ml-2" />
+                <span className="font-semibold">
+                  السلة ({totalItems}) - {formatPrice(totalPrice)}
+                </span>
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Cart Dialog */}
+      <Dialog open={showCart} onOpenChange={setShowCart}>
+        <DialogContent className="max-w-md max-h-[80vh] flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5" />
+              سلة التسوق ({totalItems} عنصر)
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto py-4">
+            <div className="space-y-4">
+              {cart.map((item) => (
+                <div key={item.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex-1">
+                    <h4 className="font-medium">{item.name}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {formatPrice(item.price)} × {item.quantity}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => removeFromCart(item.id)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </Button>
+                    <span className="font-medium min-w-[24px] text-center">
+                      {item.quantity}
+                    </span>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        const menuItem = menuItems.find(mi => mi.id === item.id);
+                        if (menuItem) addToCart(menuItem);
+                      }}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  <div className="font-semibold text-primary">
+                    {formatPrice(item.price * item.quantity)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t pt-4 space-y-4">
+            <div className="flex justify-between text-lg font-bold">
+              <span>المجموع:</span>
+              <span className="text-primary">{formatPrice(totalPrice)}</span>
+            </div>
+            
+            <Button
+              onClick={handleWhatsAppOrder}
+              disabled={isProcessingOrder}
+              size="lg"
+              className="w-full rounded-full bg-fresh-green hover:bg-fresh-green/90 text-white"
+            >
+              {isProcessingOrder ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin ml-2" />
+                  جاري الإرسال...
+                </>
+              ) : (
+                <>
+                  <MessageCircle className="w-5 h-5 ml-2" />
+                  إرسال عبر الواتساب
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Item Detail Dialog */}
+      <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+        <DialogContent className="max-w-lg" dir={isRTL ? 'rtl' : 'ltr'}>
+          {selectedItem && (
+            <>
+              <div className="aspect-square overflow-hidden rounded-lg bg-muted mb-4">
+                {selectedItem.image_url ? (
+                  <img
+                    src={selectedItem.image_url}
+                    alt={selectedItem.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-subtle">
+                    <Utensils className="w-16 h-16 text-muted-foreground" />
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-    </SidebarProvider>
+              
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">{selectedItem.name}</h2>
+                  {selectedItem.description && (
+                    <p className="text-muted-foreground">{selectedItem.description}</p>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-bold text-primary">
+                    {formatPrice(selectedItem.price)}
+                  </span>
+                  
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => toggleFavorite(selectedItem.id)}
+                    >
+                      <Heart 
+                        className={`w-4 h-4 ${
+                          favorites.has(selectedItem.id) 
+                            ? 'fill-red-500 text-red-500' 
+                            : 'text-muted-foreground'
+                        }`}
+                      />
+                    </Button>
+                    
+                    <Button
+                      onClick={() => {
+                        addToCart(selectedItem);
+                        setSelectedItem(null);
+                      }}
+                      className="rounded-full"
+                    >
+                      <Plus className="w-4 h-4 ml-1" />
+                      إضافة للسلة
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Feedback Dialog */}
+      <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
+        <DialogContent className="max-w-md" dir={isRTL ? 'rtl' : 'ltr'}>
+          <DialogHeader>
+            <DialogTitle>تقييم تجربتك</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">التقييم</label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Button
+                    key={star}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFeedback({...feedback, rating: star})}
+                    className="p-1"
+                  >
+                    <Star
+                      className={`w-6 h-6 ${
+                        star <= feedback.rating 
+                          ? 'fill-yellow-400 text-yellow-400' 
+                          : 'text-muted-foreground'
+                      }`}
+                    />
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium mb-2 block">تعليق (اختياري)</label>
+              <Textarea
+                placeholder="شاركنا رأيك..."
+                value={feedback.comment}
+                onChange={(e) => setFeedback({...feedback, comment: e.target.value})}
+              />
+            </div>
+            
+            <Button
+              onClick={async () => {
+                if (feedback.rating > 0) {
+                  try {
+                    await supabase.from('feedback').insert({
+                      tenant_id: tenant?.id,
+                      rating: feedback.rating,
+                      comment: feedback.comment || null,
+                    });
+                    toast.success("شكراً لتقييمك!");
+                    setShowFeedback(false);
+                    setFeedback({ rating: 0, comment: "" });
+                  } catch (error) {
+                    toast.error("حدث خطأ أثناء إرسال التقييم");
+                  }
+                }
+              }}
+              disabled={feedback.rating === 0}
+              className="w-full"
+            >
+              إرسال التقييم
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

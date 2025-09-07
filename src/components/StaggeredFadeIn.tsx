@@ -63,7 +63,7 @@ const childVariants: Variants = {
 const StaggeredFadeIn = ({
   children,
   className,
-  stagger = 0.05,
+  stagger = 0.1,
   delay = 0,
 }: StaggeredFadeInProps): JSX.Element => {
   const ref = useRef(null);

@@ -396,39 +396,39 @@ const RestaurantDashboard = (): JSX.Element => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                  1
+            <div className="space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <div className={`w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold ${isRTL ? 'order-2' : ''}`}>
+                  {isRTL ? '١' : '1'}
                 </div>
-                <div>
+                <div className={`${isRTL ? 'order-1 text-right' : ''}`}>
                   <h4 className="font-medium">{t('restaurant.gettingStarted.step1.title')}</h4>
                   <p className="text-sm text-muted-foreground">{t('restaurant.gettingStarted.step1.description')}</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                  2
+              <div className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <div className={`w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold ${isRTL ? 'order-2' : ''}`}>
+                  {isRTL ? '٢' : '2'}
                 </div>
-                <div>
+                <div className={`${isRTL ? 'order-1 text-right' : ''}`}>
                   <h4 className="font-medium">{t('restaurant.gettingStarted.step2.title')}</h4>
                   <p className="text-sm text-muted-foreground">{t('restaurant.gettingStarted.step2.description')}</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                  3
+              <div className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <div className={`w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold ${isRTL ? 'order-2' : ''}`}>
+                  {isRTL ? '٣' : '3'}
                 </div>
-                <div>
+                <div className={`${isRTL ? 'order-1 text-right' : ''}`}>
                   <h4 className="font-medium">{t('restaurant.gettingStarted.step3.title')}</h4>
                   <p className="text-sm text-muted-foreground">{t('restaurant.gettingStarted.step3.description')}</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                  4
+              <div className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <div className={`w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold ${isRTL ? 'order-2' : ''}`}>
+                  {isRTL ? '٤' : '4'}
                 </div>
-                <div>
+                <div className={`${isRTL ? 'order-1 text-right' : ''}`}>
                   <h4 className="font-medium">{t('restaurant.gettingStarted.step4.title')}</h4>
                   <p className="text-sm text-muted-foreground">{t('restaurant.gettingStarted.step4.description')}</p>
                 </div>
