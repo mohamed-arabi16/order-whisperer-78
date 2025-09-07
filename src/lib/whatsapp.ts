@@ -61,7 +61,7 @@ export const generateWhatsAppMessage = ({
 
 /**
  * Opens WhatsApp with a pre-filled message.
- * It handles both mobile and desktop devices.
+ * It handles both mobile and desktop devices and supports international phone numbers.
  *
  * @param {string} phoneNumber - The phone number to send the message to.
  * @param {string} message - The message to send.
@@ -70,13 +70,14 @@ export const openWhatsApp = (phoneNumber: string, message: string): void => {
   // Clean phone number - remove any non-digits except +
   let cleanNumber = phoneNumber.replace(/[^\d+]/g, "");
 
-  // Add Lebanon country code if needed
-  if (!cleanNumber.startsWith("+") && !cleanNumber.startsWith("961")) {
+  // If number doesn't start with + and doesn't already have country code, 
+  // assume it needs country code but don't hardcode Lebanon
+  if (!cleanNumber.startsWith("+")) {
+    // If it starts with 0, remove the leading zero
     if (cleanNumber.startsWith("0")) {
-      cleanNumber = "961" + cleanNumber.substring(1);
-    } else {
-      cleanNumber = "961" + cleanNumber;
+      cleanNumber = cleanNumber.substring(1);
     }
+    // Don't add any country code - user should provide full international number
   }
 
   // Remove + for WhatsApp URL
@@ -118,29 +119,19 @@ export const openWhatsApp = (phoneNumber: string, message: string): void => {
 };
 
 /**
- * Validates a Lebanese phone number.
+ * Validates an international phone number.
  *
  * @param {string} phoneNumber - The phone number to validate.
  * @returns {boolean} True if the phone number is valid, false otherwise.
  */
 export const validatePhoneNumber = (phoneNumber: string): boolean => {
-  // Lebanese phone number validation
+  // Universal international phone number validation
   const cleanNumber = phoneNumber.replace(/[^\d+]/g, "");
 
-  // Check if it's a valid Lebanese number pattern
+  // Check for various international number patterns
   const patterns = [
-    /^\+9613\d{6}$/, // +961 3 xxxxxx (mobile)
-    /^\+9617[0-6]\d{6}$/, // +961 70-76 xxxxxx (mobile)
-    /^\+9618[0-1]\d{6}$/, // +961 80-81 xxxxxx (mobile)
-    /^\+9611\d{6}$/, // +961 1 xxxxxx (Beirut landline)
-    /^9613\d{6}$/, // 961 3 xxxxxx
-    /^9617[0-6]\d{6}$/,
-    /^9618[0-1]\d{6}$/,
-    /^9611\d{6}$/,
-    /^03\d{6}$/, // 03 xxxxxx
-    /^7[0-6]\d{6}$/, // 70-76 xxxxxx
-    /^8[0-1]\d{6}$/, // 80-81 xxxxxx
-    /^01\d{6}$/, // 01 xxxxxx (Beirut)
+    /^\+\d{7,15}$/, // International format: +1234567890 (7-15 digits)
+    /^\d{7,15}$/, // National format: 1234567890 (7-15 digits)
   ];
 
   return patterns.some((pattern) => pattern.test(cleanNumber));

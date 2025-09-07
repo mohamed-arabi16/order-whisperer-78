@@ -118,9 +118,12 @@ const MenuDemo = (): JSX.Element => {
                 className="overflow-hidden shadow-card transition-all duration-300 hover:shadow-lg flex flex-col md:flex-row md:items-center"
               >
                 <img
-                  src={item.image}
+                  src={item.image || "/placeholder.svg"}
                   alt={item.name}
                   className="w-full h-40 md:w-32 md:h-32 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/placeholder.svg";
+                  }}
                 />
                 <CardContent className="p-4 flex flex-col flex-grow justify-between">
                   <div>

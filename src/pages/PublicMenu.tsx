@@ -167,7 +167,8 @@ const PublicMenu = (): JSX.Element => {
     });
 
     toast.success(`${item.name} أُضيف إلى السلة`, {
-      duration: 2000,
+      duration: 1500,
+      position: "bottom-center",
     });
 
     setTimeout(() => setIsAddingToCart(null), 300);
@@ -401,8 +402,32 @@ const PublicMenu = (): JSX.Element => {
         </div>
       </div>
 
+      {/* Restaurant Overview */}
+      {tenant && (
+        <div className="container mx-auto px-4 py-6">
+          <Card className="glass border-0 mb-8">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2 gradient-hero bg-clip-text text-transparent">
+                  مرحباً بكم في {tenant.name}
+                </h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  اكتشف أشهى الأطباق من مطبخنا المميز. نقدم لكم أفضل الوصفات التقليدية والعصرية بأعلى جودة ونكهات لا تُنسى.
+                </p>
+                {tenant.address && (
+                  <div className="flex items-center justify-center gap-2 mt-4 text-sm text-muted-foreground">
+                    <MapPin className="w-4 h-4" />
+                    <span>{tenant.address}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Menu Content */}
-      <div className="container mx-auto px-4 py-6 pb-32">
+      <div className="container mx-auto px-4 py-0 pb-32">
         {categories.map((category) => {
           const categoryItems = getItemsForCategory(category.id);
           if (categoryItems.length === 0 && searchQuery) return null;
@@ -422,7 +447,7 @@ const PublicMenu = (): JSX.Element => {
                 <Separator className="flex-1" />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="space-y-4">
                 {categoryItems.map((item, index) => (
                   <motion.div
                     key={item.id}
@@ -431,55 +456,58 @@ const PublicMenu = (): JSX.Element => {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
                     <Card className="group overflow-hidden hover:shadow-warm transition-all duration-300 glass border-0">
-                      <div className="relative">
-                        {/* Image */}
-                        <div className="relative aspect-square overflow-hidden bg-muted">
-                          {item.image_url ? (
-                            <LazyLoadImage
-                              src={item.image_url}
-                              alt={item.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              effect="blur"
-                              onClick={() => setSelectedItem(item)}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-subtle">
-                              <Utensils className="w-12 h-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          
-                          {/* Favorite Button */}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="absolute top-2 right-2 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
-                            onClick={() => toggleFavorite(item.id)}
-                          >
-                            <Heart 
-                              className={`w-4 h-4 transition-colors ${
-                                favorites.has(item.id) 
-                                  ? 'fill-red-500 text-red-500' 
-                                  : 'text-muted-foreground'
-                              }`}
-                            />
-                          </Button>
-
-                          {/* Featured Badge */}
-                          {item.is_featured && (
-                            <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground">
-                              مُوصى
-                            </Badge>
-                          )}
-                        </div>
-
-                        <CardContent className="p-4">
-                          <div className="space-y-2">
-                            <h3 className="font-semibold text-lg leading-tight">{item.name}</h3>
-                            {item.description && (
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {item.description}
-                              </p>
+                      <CardContent className="p-0">
+                        <div className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} gap-0`}>
+                          {/* Image Section */}
+                          <div className="relative w-32 h-32 flex-shrink-0">
+                            {item.image_url ? (
+                              <LazyLoadImage
+                                src={item.image_url}
+                                alt={item.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                effect="blur"
+                                onClick={() => setSelectedItem(item)}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-subtle">
+                                <Utensils className="w-8 h-8 text-muted-foreground" />
+                              </div>
                             )}
+                            
+                            {/* Featured Badge */}
+                            {item.is_featured && (
+                              <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground text-xs">
+                                مُوصى
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Content Section */}
+                          <div className="flex-1 p-4 flex flex-col justify-between">
+                            <div className="space-y-1">
+                              <div className="flex items-start justify-between">
+                                <h3 className="font-semibold text-lg leading-tight">{item.name}</h3>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="p-1 rounded-full hover:bg-muted ml-2"
+                                  onClick={() => toggleFavorite(item.id)}
+                                >
+                                  <Heart 
+                                    className={`w-4 h-4 transition-colors ${
+                                      favorites.has(item.id) 
+                                        ? 'fill-red-500 text-red-500' 
+                                        : 'text-muted-foreground'
+                                    }`}
+                                  />
+                                </Button>
+                              </div>
+                              {item.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                  {item.description}
+                                </p>
+                              )}
+                            </div>
                             
                             <div className="flex items-center justify-between pt-2">
                               <span className="text-lg font-bold text-primary">
@@ -529,8 +557,8 @@ const PublicMenu = (): JSX.Element => {
                               )}
                             </div>
                           </div>
-                        </CardContent>
-                      </div>
+                        </div>
+                      </CardContent>
                     </Card>
                   </motion.div>
                 ))}

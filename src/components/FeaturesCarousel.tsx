@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   MenuIcon,
@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
  */
 const FeaturesCarousel = (): JSX.Element => {
   const { t, isRTL } = useTranslation();
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "center",
@@ -71,15 +72,22 @@ const FeaturesCarousel = (): JSX.Element => {
   useEffect(() => {
     if (!emblaApi) return;
 
+    const onSelect = () => {
+      setSelectedIndex(emblaApi.selectedScrollSnap());
+    };
+
+    emblaApi.on('select', onSelect);
+    onSelect();
+
     const autoplay = setInterval(() => {
       emblaApi.scrollNext();
-    }, 6000);
+    }, 3000);
 
     const onMouseEnter = () => clearInterval(autoplay);
     const onMouseLeave = () => {
       const newAutoplay = setInterval(() => {
         emblaApi.scrollNext();
-      }, 6000);
+      }, 3000);
       clearInterval(autoplay);
       return newAutoplay;
     };
@@ -92,6 +100,7 @@ const FeaturesCarousel = (): JSX.Element => {
       clearInterval(autoplay);
       emblaNode.removeEventListener("mouseenter", onMouseEnter);
       emblaNode.removeEventListener("mouseleave", onMouseLeave);
+      emblaApi.off('select', onSelect);
     };
   }, [emblaApi]);
 
@@ -116,12 +125,12 @@ const FeaturesCarousel = (): JSX.Element => {
           {/* Carousel Container */}
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex">
-              {features.concat(features, features).map((feature, index) => {
-                const isCenter = Math.abs((index % features.length) - Math.floor(features.length / 2)) === 0;
+              {features.map((feature, index) => {
+                const isCenter = index === selectedIndex;
                 return (
                   <motion.div
                     key={index}
-                    className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 px-3"
+                    className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 px-3"
                     initial={{ opacity: 0.4, scale: 0.8 }}
                     animate={{ 
                       opacity: isCenter ? 1 : 0.4, 
