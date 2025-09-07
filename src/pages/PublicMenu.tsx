@@ -2,15 +2,13 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Minus, Plus, ShoppingCart, Star, MessageCircle, Search, Heart, 
-  X, ArrowLeft, Clock, Loader2, Phone, MapPin, Utensils
+  Star, MessageCircle, X, ArrowLeft, Clock, Loader2, Phone, MapPin, Utensils
 } from "lucide-react";
 import { motion, useAnimation, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -20,6 +18,10 @@ import "react-lazy-load-image-component/src/effects/blur.css";
 import { generateWhatsAppMessage, openWhatsApp, validatePhoneNumber } from "@/lib/whatsapp";
 import PublicMenuSkeleton from "@/components/menu/PublicMenuSkeleton";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { MenuItemCard } from "@/components/menu/MenuItemCard";
+import { StickyNavigation } from "@/components/menu/StickyNavigation";
+import { EnhancedCartBar } from "@/components/menu/EnhancedCartBar";
+import { RestaurantOverview } from "@/components/menu/RestaurantOverview";
 
 interface Tenant {
   id: string;
@@ -167,7 +169,7 @@ const PublicMenu = (): JSX.Element => {
     });
 
     toast.success(`${item.name} أُضيف إلى السلة`, {
-      duration: 1500,
+      duration: 2000,
       position: "bottom-center",
     });
 
@@ -196,10 +198,10 @@ const PublicMenu = (): JSX.Element => {
     const newFavorites = new Set(favorites);
     if (newFavorites.has(itemId)) {
       newFavorites.delete(itemId);
-      toast.success("تم إزالة العنصر من المفضلة");
+      toast.success("تم إزالة العنصر من المفضلة", { duration: 2000 });
     } else {
       newFavorites.add(itemId);
-      toast.success("تم إضافة العنصر إلى المفضلة");
+      toast.success("تم إضافة العنصر إلى المفضلة", { duration: 2000 });
     }
     setFavorites(newFavorites);
   };
@@ -329,7 +331,10 @@ const PublicMenu = (): JSX.Element => {
                 />
               )}
               <div>
-                <h1 className="text-xl font-bold gradient-hero bg-clip-text text-transparent">
+                <h1 
+                  className="text-xl font-bold"
+                  style={{ color: tenant.primary_color || 'hsl(var(--primary))' }}
+                >
                   {tenant.name}
                 </h1>
                 {tenant.address && (
@@ -341,90 +346,26 @@ const PublicMenu = (): JSX.Element => {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:hidden">
               <LanguageSwitcher />
-              {tenant.phone_number && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => window.open(`tel:${tenant.phone_number}`)}
-                  className="hidden sm:flex"
-                >
-                  <Phone className="w-4 h-4 ml-1" />
-                  اتصل بنا
-                </Button>
-              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="sticky top-[88px] z-40 bg-background/95 backdrop-blur-md border-b">
-        <div className="container mx-auto px-4 py-3">
-          <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="ابحث عن الأطباق..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 rounded-full border-0 bg-muted/50 focus:bg-background transition-colors"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Category Tabs */}
-      <div className="sticky top-[144px] z-30 bg-background/90 backdrop-blur-md border-b">
-        <div className="container mx-auto px-4">
-          <div 
-            ref={categoryTabsRef}
-            className="flex overflow-x-auto scrollbar-hide gap-2 py-3"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={activeCategory === category.id ? "default" : "ghost"}
-                size="sm"
-                onClick={() => scrollToCategory(category.id)}
-                className={`whitespace-nowrap rounded-full transition-all ${
-                  activeCategory === category.id 
-                    ? 'bg-primary text-primary-foreground shadow-glow' 
-                    : 'hover:bg-muted/80'
-                }`}
-              >
-                {category.name}
-              </Button>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Sticky Navigation */}
+      <StickyNavigation
+        categories={categories}
+        activeCategory={activeCategory}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onCategorySelect={scrollToCategory}
+        phoneNumber={tenant.phone_number || undefined}
+        primaryColor={tenant.primary_color || undefined}
+      />
 
       {/* Restaurant Overview */}
-      {tenant && (
-        <div className="container mx-auto px-4 py-6">
-          <Card className="glass border-0 mb-8">
-            <CardContent className="p-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2 gradient-hero bg-clip-text text-transparent">
-                  مرحباً بكم في {tenant.name}
-                </h2>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                  اكتشف أشهى الأطباق من مطبخنا المميز. نقدم لكم أفضل الوصفات التقليدية والعصرية بأعلى جودة ونكهات لا تُنسى.
-                </p>
-                {tenant.address && (
-                  <div className="flex items-center justify-center gap-2 mt-4 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>{tenant.address}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <RestaurantOverview tenant={tenant} />
 
       {/* Menu Content */}
       <div className="container mx-auto px-4 py-0 pb-32">
@@ -448,297 +389,154 @@ const PublicMenu = (): JSX.Element => {
               </div>
 
               <div className="space-y-4">
-                {categoryItems.map((item, index) => (
-                  <motion.div
+                {categoryItems.map((item) => (
+                  <MenuItemCard
                     key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                  >
-                    <Card className="group overflow-hidden hover:shadow-warm transition-all duration-300 glass border-0">
-                      <CardContent className="p-0">
-                        <div className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} gap-0`}>
-                          {/* Image Section */}
-                          <div className="relative w-32 h-32 flex-shrink-0">
-                            {item.image_url ? (
-                              <LazyLoadImage
-                                src={item.image_url}
-                                alt={item.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                effect="blur"
-                                onClick={() => setSelectedItem(item)}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gradient-subtle">
-                                <Utensils className="w-8 h-8 text-muted-foreground" />
-                              </div>
-                            )}
-                            
-                            {/* Featured Badge */}
-                            {item.is_featured && (
-                              <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground text-xs">
-                                مُوصى
-                              </Badge>
-                            )}
-                          </div>
-
-                          {/* Content Section */}
-                          <div className="flex-1 p-4 flex flex-col justify-between">
-                            <div className="space-y-1">
-                              <div className="flex items-start justify-between">
-                                <h3 className="font-semibold text-lg leading-tight">{item.name}</h3>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="p-1 rounded-full hover:bg-muted ml-2"
-                                  onClick={() => toggleFavorite(item.id)}
-                                >
-                                  <Heart 
-                                    className={`w-4 h-4 transition-colors ${
-                                      favorites.has(item.id) 
-                                        ? 'fill-red-500 text-red-500' 
-                                        : 'text-muted-foreground'
-                                    }`}
-                                  />
-                                </Button>
-                              </div>
-                              {item.description && (
-                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                  {item.description}
-                                </p>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center justify-between pt-2">
-                              <span className="text-lg font-bold text-primary">
-                                {formatPrice(item.price)}
-                              </span>
-                              
-                              {getItemQuantity(item.id) > 0 ? (
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => removeFromCart(item.id)}
-                                    className="h-8 w-8 p-0 rounded-full"
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </Button>
-                                  <span className="font-medium min-w-[24px] text-center">
-                                    {getItemQuantity(item.id)}
-                                  </span>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => addToCart(item)}
-                                    className="h-8 w-8 p-0 rounded-full"
-                                    disabled={isAddingToCart === item.id}
-                                  >
-                                    {isAddingToCart === item.id ? (
-                                      <Loader2 className="w-3 h-3 animate-spin" />
-                                    ) : (
-                                      <Plus className="w-3 h-3" />
-                                    )}
-                                  </Button>
-                                </div>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  onClick={() => addToCart(item)}
-                                  className="rounded-full hover-lift"
-                                  disabled={isAddingToCart === item.id}
-                                >
-                                  {isAddingToCart === item.id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin ml-1" />
-                                  ) : (
-                                    <Plus className="w-4 h-4 ml-1" />
-                                  )}
-                                  إضافة
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+                    item={item}
+                    quantity={getItemQuantity(item.id)}
+                    isFavorite={favorites.has(item.id)}
+                    isAddingToCart={isAddingToCart === item.id}
+                    onAddToCart={() => addToCart(item)}
+                    onRemoveFromCart={() => removeFromCart(item.id)}
+                    onToggleFavorite={() => toggleFavorite(item.id)}
+                    onViewDetails={() => setSelectedItem(item)}
+                    primaryColor={tenant.primary_color || undefined}
+                  />
                 ))}
               </div>
-
-              {categoryItems.length === 0 && (
-                <div className="text-center py-12">
-                  <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    {searchQuery ? 'لا توجد أطباق تطابق البحث' : 'لا توجد أطباق في هذا القسم'}
-                  </p>
-                </div>
-              )}
             </motion.section>
           );
         })}
       </div>
 
-      {/* Floating Cart Button */}
-      <AnimatePresence>
-        {cart.length > 0 && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50"
-          >
-            <motion.div animate={cartAnimation}>
-              <Button
-                onClick={() => setShowCart(true)}
-                size="lg"
-                className="rounded-full shadow-glow px-6 py-3 bg-primary hover:bg-primary/90"
-              >
-                <ShoppingCart className="w-5 h-5 ml-2" />
-                <span className="font-semibold">
-                  السلة ({totalItems}) - {formatPrice(totalPrice)}
-                </span>
-              </Button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Enhanced Cart Bar */}
+      <EnhancedCartBar
+        cart={cart}
+        totalPrice={totalPrice}
+        totalItems={totalItems}
+        onShowCart={() => setShowCart(true)}
+        primaryColor={tenant.primary_color || undefined}
+        restaurantName={tenant.name}
+        cartAnimation={cartAnimation}
+      />
 
-      {/* Cart Dialog */}
+      {/* Cart Modal */}
       <Dialog open={showCart} onOpenChange={setShowCart}>
-        <DialogContent className="max-w-md max-h-[80vh] flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
-          <DialogHeader className="border-b pb-4">
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5" />
-              سلة التسوق ({totalItems} عنصر)
-            </DialogTitle>
+        <DialogContent className="max-w-md mx-auto max-h-[80vh] overflow-hidden flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="text-center">سلة التسوق</DialogTitle>
+            {tenant.name && (
+              <p className="text-sm text-muted-foreground text-center">
+                {tenant.name}
+              </p>
+            )}
           </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto py-4">
-            <div className="space-y-4">
-              {cart.map((item) => (
-                <div key={item.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{item.name}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {formatPrice(item.price)} × {item.quantity}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => removeFromCart(item.id)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </Button>
-                    <span className="font-medium min-w-[24px] text-center">
-                      {item.quantity}
-                    </span>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        const menuItem = menuItems.find(mi => mi.id === item.id);
-                        if (menuItem) addToCart(menuItem);
-                      }}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </Button>
-                  </div>
-                  <div className="font-semibold text-primary">
-                    {formatPrice(item.price * item.quantity)}
-                  </div>
+          
+          <div className="flex-1 overflow-y-auto space-y-4 py-4 min-h-0">
+            {cart.map((item) => (
+              <div key={item.id} className="flex justify-between items-center p-4 rounded-lg bg-muted/30">
+                <div className="flex-1">
+                  <h4 className="font-medium">{item.name}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {formatPrice(item.price)} × {item.quantity}
+                  </p>
                 </div>
-              ))}
-            </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => removeFromCart(item.id)}
+                    className="h-8 w-8 p-0"
+                  >
+                    -
+                  </Button>
+                  <span className="w-8 text-center">{item.quantity}</span>
+                  <Button
+                    size="sm"
+                    onClick={() => addToCart({ 
+                      id: item.id, 
+                      name: item.name, 
+                      price: item.price, 
+                      description: null, 
+                      image_url: null, 
+                      category_id: '', 
+                      is_available: true, 
+                      display_order: 0 
+                    } as MenuItem)}
+                    className="h-8 w-8 p-0"
+                    style={{ backgroundColor: tenant.primary_color || undefined }}
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
-
-          <div className="border-t pt-4 space-y-4">
-            <div className="flex justify-between text-lg font-bold">
+          
+          <div className="flex-shrink-0 pt-4 border-t space-y-4">
+            <div className="flex justify-between items-center font-bold text-lg">
               <span>المجموع:</span>
-              <span className="text-primary">{formatPrice(totalPrice)}</span>
+              <span style={{ color: tenant.primary_color || 'hsl(var(--primary))' }}>
+                {formatPrice(totalPrice)}
+              </span>
             </div>
             
             <Button
               onClick={handleWhatsAppOrder}
-              disabled={isProcessingOrder}
-              size="lg"
-              className="w-full rounded-full bg-fresh-green hover:bg-fresh-green/90 text-white"
+              disabled={isProcessingOrder || cart.length === 0}
+              className="w-full h-12 text-lg"
+              style={{ backgroundColor: tenant.primary_color || undefined }}
             >
               {isProcessingOrder ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin ml-2" />
+                  <Loader2 className="w-4 h-4 animate-spin ml-2" />
                   جاري الإرسال...
                 </>
               ) : (
-                <>
-                  <MessageCircle className="w-5 h-5 ml-2" />
-                  إرسال عبر الواتساب
-                </>
+                "إرسال الطلب عبر واتساب"
               )}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Item Detail Dialog */}
+      {/* Item Details Modal */}
       <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-        <DialogContent className="max-w-lg" dir={isRTL ? 'rtl' : 'ltr'}>
+        <DialogContent className="max-w-md mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
           {selectedItem && (
             <>
-              <div className="aspect-square overflow-hidden rounded-lg bg-muted mb-4">
-                {selectedItem.image_url ? (
-                  <img
+              <DialogHeader>
+                <DialogTitle>{selectedItem.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {selectedItem.image_url && (
+                  <LazyLoadImage
                     src={selectedItem.image_url}
                     alt={selectedItem.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-48 object-cover rounded-lg"
+                    effect="blur"
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-subtle">
-                    <Utensils className="w-16 h-16 text-muted-foreground" />
-                  </div>
                 )}
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">{selectedItem.name}</h2>
-                  {selectedItem.description && (
-                    <p className="text-muted-foreground">{selectedItem.description}</p>
-                  )}
-                </div>
-                
+                {selectedItem.description && (
+                  <p className="text-muted-foreground">{selectedItem.description}</p>
+                )}
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-primary">
+                  <span 
+                    className="text-2xl font-bold"
+                    style={{ color: tenant.primary_color || 'hsl(var(--primary))' }}
+                  >
                     {formatPrice(selectedItem.price)}
                   </span>
-                  
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => toggleFavorite(selectedItem.id)}
-                    >
-                      <Heart 
-                        className={`w-4 h-4 ${
-                          favorites.has(selectedItem.id) 
-                            ? 'fill-red-500 text-red-500' 
-                            : 'text-muted-foreground'
-                        }`}
-                      />
-                    </Button>
-                    
-                    <Button
-                      onClick={() => {
-                        addToCart(selectedItem);
-                        setSelectedItem(null);
-                      }}
-                      className="rounded-full"
-                    >
-                      <Plus className="w-4 h-4 ml-1" />
-                      إضافة للسلة
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={() => {
+                      addToCart(selectedItem);
+                      setSelectedItem(null);
+                    }}
+                    className="px-6"
+                    style={{ backgroundColor: tenant.primary_color || undefined }}
+                  >
+                    أضف إلى السلة
+                  </Button>
                 </div>
               </div>
             </>
@@ -746,65 +544,47 @@ const PublicMenu = (): JSX.Element => {
         </DialogContent>
       </Dialog>
 
-      {/* Feedback Dialog */}
+      {/* Feedback Modal */}
       <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
-        <DialogContent className="max-w-md" dir={isRTL ? 'rtl' : 'ltr'}>
+        <DialogContent className="max-w-md mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
             <DialogTitle>تقييم تجربتك</DialogTitle>
           </DialogHeader>
-          
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">التقييم</label>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Button
-                    key={star}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setFeedback({...feedback, rating: star})}
-                    className="p-1"
-                  >
-                    <Star
-                      className={`w-6 h-6 ${
-                        star <= feedback.rating 
-                          ? 'fill-yellow-400 text-yellow-400' 
-                          : 'text-muted-foreground'
-                      }`}
-                    />
-                  </Button>
-                ))}
-              </div>
+            <div className="flex justify-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Button
+                  key={star}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFeedback({ ...feedback, rating: star })}
+                  className="p-1"
+                >
+                  <Star
+                    className={`w-8 h-8 ${
+                      star <= feedback.rating
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-muted-foreground'
+                    }`}
+                  />
+                </Button>
+              ))}
             </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-2 block">تعليق (اختياري)</label>
-              <Textarea
-                placeholder="شاركنا رأيك..."
-                value={feedback.comment}
-                onChange={(e) => setFeedback({...feedback, comment: e.target.value})}
-              />
-            </div>
-            
+            <Textarea
+              placeholder="اكتب تعليقك هنا (اختياري)"
+              value={feedback.comment}
+              onChange={(e) => setFeedback({ ...feedback, comment: e.target.value })}
+              className="min-h-20"
+            />
             <Button
-              onClick={async () => {
-                if (feedback.rating > 0) {
-                  try {
-                    await supabase.from('feedback').insert({
-                      tenant_id: tenant?.id,
-                      rating: feedback.rating,
-                      comment: feedback.comment || null,
-                    });
-                    toast.success("شكراً لتقييمك!");
-                    setShowFeedback(false);
-                    setFeedback({ rating: 0, comment: "" });
-                  } catch (error) {
-                    toast.error("حدث خطأ أثناء إرسال التقييم");
-                  }
-                }
+              onClick={() => {
+                toast.success("شكراً لك على تقييمك!");
+                setShowFeedback(false);
+                setFeedback({ rating: 0, comment: "" });
               }}
-              disabled={feedback.rating === 0}
               className="w-full"
+              disabled={feedback.rating === 0}
+              style={{ backgroundColor: tenant.primary_color || undefined }}
             >
               إرسال التقييم
             </Button>
