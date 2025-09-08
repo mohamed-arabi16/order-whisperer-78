@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Textarea } from "@/components/ui/textarea";
 
 /**
  * Represents a tenant with branding information.
@@ -30,6 +31,7 @@ interface Tenant {
     instagram?: string;
     twitter?: string;
   };
+  description?: string;
 }
 
 /**
@@ -70,6 +72,7 @@ const RestaurantBranding = (): JSX.Element => {
     instagram: '',
     twitter: '',
   });
+  const [description, setDescription] = useState('');
 
   useEffect(() => {
     fetchTenantData();
@@ -91,11 +94,21 @@ const RestaurantBranding = (): JSX.Element => {
         if (error) throw error;
 
         if (data) {
-          setTenant(data);
+          const tenant = {
+            ...data,
+            logo_position: (data.logo_position as 'left' | 'center' | 'right') || 'center',
+            social_media_links: (data.social_media_links as { facebook?: string; instagram?: string; twitter?: string }) || undefined
+          };
+          
+          setTenant(tenant);
           setSelectedColor(data.primary_color || '#2563eb');
-          // Note: logo_position and social_media_links don't exist in current schema
-          setLogoPosition('left');
-          setSocialMediaLinks({ facebook: '', instagram: '', twitter: '' });
+          setLogoPosition(tenant.logo_position);
+          setSocialMediaLinks({
+            facebook: tenant.social_media_links?.facebook || '',
+            instagram: tenant.social_media_links?.instagram || '',
+            twitter: tenant.social_media_links?.twitter || ''
+          });
+          setDescription(data.description || '');
           if (data.logo_url) {
             setLogoPreview(data.logo_url);
           }
@@ -187,6 +200,7 @@ const RestaurantBranding = (): JSX.Element => {
           primary_color: selectedColor,
           logo_position: logoPosition,
           social_media_links: socialMediaLinks,
+          description: description,
         })
         .eq('id', tenant.id);
 
@@ -198,6 +212,7 @@ const RestaurantBranding = (): JSX.Element => {
         primary_color: selectedColor,
         logo_position: logoPosition,
         social_media_links: socialMediaLinks,
+        description: description,
       } : null);
 
       toast({
@@ -414,6 +429,22 @@ const RestaurantBranding = (): JSX.Element => {
                     {t('branding.logoPosition.right')}
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Restaurant Description */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>وصف المطعم</CardTitle>
+                <CardDescription>اكتب وصفاً جذاباً لمطعمك يظهر للعملاء</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  placeholder="اكتشف أشهى الأطباق من مطبخنا المميز..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="min-h-24"
+                />
               </CardContent>
             </Card>
 

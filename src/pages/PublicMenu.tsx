@@ -32,6 +32,12 @@ interface Tenant {
   primary_color: string | null;
   is_active: boolean;
   address: string | null;
+  description: string | null;
+  social_media_links: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+  } | null;
 }
 
 interface Category {
@@ -103,7 +109,10 @@ const PublicMenu = (): JSX.Element => {
         if (tenantError) throw tenantError;
         if (!tenantData) throw new Error('Restaurant not found');
 
-        setTenant(tenantData);
+        setTenant({
+          ...tenantData,
+          social_media_links: (tenantData.social_media_links as { facebook?: string; instagram?: string; twitter?: string } | null),
+        });
 
         // Fetch categories
         const { data: categoriesData, error: categoriesError } = await supabase
@@ -351,18 +360,18 @@ const PublicMenu = (): JSX.Element => {
             </div>
           </div>
         </div>
+        
+        {/* Sticky Navigation - No gap between header and navigation */}
+        <StickyNavigation
+          categories={categories}
+          activeCategory={activeCategory}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onCategorySelect={scrollToCategory}
+          phoneNumber={tenant.phone_number || undefined}
+          primaryColor={tenant.primary_color || undefined}
+        />
       </div>
-
-      {/* Sticky Navigation */}
-      <StickyNavigation
-        categories={categories}
-        activeCategory={activeCategory}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onCategorySelect={scrollToCategory}
-        phoneNumber={tenant.phone_number || undefined}
-        primaryColor={tenant.primary_color || undefined}
-      />
 
       {/* Restaurant Overview */}
       <RestaurantOverview tenant={tenant} />

@@ -37,9 +37,9 @@ export const StickyNavigation: React.FC<StickyNavigationProps> = ({
   const categoryTabsRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="sticky top-[88px] z-40 bg-background/95 backdrop-blur-md border-b">
-      {/* Search Bar */}
-      <div className="container mx-auto px-4 py-3">
+    <div className="bg-background/95 backdrop-blur-md border-b shadow-sm">
+      <div className="container mx-auto px-4 py-3 space-y-3">
+        {/* Search Bar */}
         <div className="flex items-center gap-3">
           <div className="relative flex-1 max-w-md mx-auto">
             <Search className={`absolute top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground ${
@@ -80,13 +80,11 @@ export const StickyNavigation: React.FC<StickyNavigationProps> = ({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
 
-      {/* Category Tabs */}
-      <div className="container mx-auto px-4">
+        {/* Category Tabs */}
         <div 
           ref={categoryTabsRef}
-          className="flex overflow-x-auto scrollbar-hide gap-2 py-3"
+          className="flex overflow-x-auto scrollbar-hide gap-2 pb-0"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {categories.map((category) => {

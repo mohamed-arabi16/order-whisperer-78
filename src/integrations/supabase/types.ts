@@ -305,42 +305,51 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string
+          description: string | null
           id: string
           is_active: boolean
+          logo_position: string | null
           logo_url: string | null
           name: string
           owner_id: string
           phone_number: string | null
           primary_color: string | null
           slug: string
+          social_media_links: Json | null
           subscription_plan: Database["public"]["Enums"]["subscription_plan"]
           updated_at: string
         }
         Insert: {
           address?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           is_active?: boolean
+          logo_position?: string | null
           logo_url?: string | null
           name: string
           owner_id: string
           phone_number?: string | null
           primary_color?: string | null
           slug: string
+          social_media_links?: Json | null
           subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
           updated_at?: string
         }
         Update: {
           address?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           is_active?: boolean
+          logo_position?: string | null
           logo_url?: string | null
           name?: string
           owner_id?: string
           phone_number?: string | null
           primary_color?: string | null
           slug?: string
+          social_media_links?: Json | null
           subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
           updated_at?: string
         }

@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Clock, Star } from "lucide-react";
+import { MapPin, Clock, Star, Facebook, Instagram, Twitter } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Tenant {
@@ -8,6 +8,12 @@ interface Tenant {
   name: string;
   address: string | null;
   primary_color: string | null;
+  description: string | null;
+  social_media_links: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+  } | null;
 }
 
 interface RestaurantOverviewProps {
@@ -71,21 +77,66 @@ export const RestaurantOverview: React.FC<RestaurantOverviewProps> = ({
               transition={{ delay: 0.3 }}
               className="text-muted-foreground text-center max-w-2xl mx-auto mb-4 leading-relaxed"
             >
-              اكتشف أشهى الأطباق من مطبخنا المميز. نقدم لكم أفضل الوصفات التقليدية والعصرية 
-              بأعلى جودة ونكهات لا تُنسى. تجربة طعام استثنائية تجمع بين الأصالة والحداثة.
+              {tenant.description || 
+               "اكتشف أشهى الأطباق من مطبخنا المميز. نقدم لكم أفضل الوصفات التقليدية والعصرية بأعلى جودة ونكهات لا تُنسى. تجربة طعام استثنائية تجمع بين الأصالة والحداثة."
+              }
             </motion.p>
             
-            {tenant.address && (
-              <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="flex items-center justify-center gap-2 text-sm"
-              >
-                <MapPin className="w-4 h-4 text-primary" />
-                <span className="text-muted-foreground">{tenant.address}</span>
-              </motion.div>
-            )}
+            <div className="space-y-3">
+              {tenant.address && (
+                <motion.div 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="flex items-center justify-center gap-2 text-sm"
+                >
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <span className="text-muted-foreground">{tenant.address}</span>
+                </motion.div>
+              )}
+              
+              {tenant.social_media_links && (
+                Object.values(tenant.social_media_links).some(link => link && link.trim() !== '') && (
+                  <motion.div 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                    className="flex items-center justify-center gap-4"
+                  >
+                    {tenant.social_media_links.facebook && (
+                      <a 
+                        href={tenant.social_media_links.facebook} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/80 transition-colors"
+                      >
+                        <Facebook className="w-5 h-5" />
+                      </a>
+                    )}
+                    {tenant.social_media_links.instagram && (
+                      <a 
+                        href={tenant.social_media_links.instagram} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/80 transition-colors"
+                      >
+                        <Instagram className="w-5 h-5" />
+                      </a>
+                    )}
+                    {tenant.social_media_links.twitter && (
+                      <a 
+                        href={tenant.social_media_links.twitter} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/80 transition-colors"
+                      >
+                        <Twitter className="w-5 h-5" />
+                      </a>
+                    )}
+                  </motion.div>
+                )
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
