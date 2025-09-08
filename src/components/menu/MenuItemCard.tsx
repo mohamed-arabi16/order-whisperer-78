@@ -26,7 +26,6 @@ interface MenuItemCardProps {
   onRemoveFromCart: () => void;
   onToggleFavorite: () => void;
   onViewDetails: () => void;
-  primaryColor?: string;
 }
 
 export const MenuItemCard: React.FC<MenuItemCardProps> = ({
@@ -38,7 +37,6 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
   onRemoveFromCart,
   onToggleFavorite,
   onViewDetails,
-  primaryColor
 }) => {
   const { isRTL } = useTranslation();
 
@@ -53,7 +51,7 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
       transition={{ duration: 0.5 }}
       className="w-full"
     >
-      <Card className="group overflow-hidden hover:shadow-warm transition-all duration-300 glass border-0 hover-lift">
+      <Card className="group overflow-hidden hover:shadow-glow transition-all duration-300 bg-card border-0 hover-lift">
         <CardContent className="p-0">
           <div className={`flex gap-4 p-4 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
             {/* Image Section - Fixed 80x80px */}
@@ -78,8 +76,7 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
               {/* Featured Badge */}
               {item.is_featured && (
                 <Badge 
-                  className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: primaryColor || undefined }}
+                  className="absolute -top-1 -right-1 bg-brand-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full"
                 >
                   مُوصى
                 </Badge>
@@ -114,10 +111,7 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
 
               {/* Price and Controls */}
               <div className="flex items-center justify-between mt-2">
-                <span 
-                  className="text-lg font-bold"
-                  style={{ color: primaryColor || 'hsl(var(--primary))' }}
-                >
+                <span className="text-lg font-bold text-brand-primary">
                   {formatPrice(item.price)}
                 </span>
                 
@@ -126,7 +120,6 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
                   onIncrement={onAddToCart}
                   onDecrement={onRemoveFromCart}
                   isLoading={isAddingToCart}
-                  primaryColor={primaryColor}
                 />
               </div>
             </div>

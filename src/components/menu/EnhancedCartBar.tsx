@@ -16,7 +16,6 @@ interface EnhancedCartBarProps {
   totalPrice: number;
   totalItems: number;
   onShowCart: () => void;
-  primaryColor?: string;
   restaurantName?: string;
   cartAnimation: any;
 }
@@ -26,7 +25,6 @@ export const EnhancedCartBar: React.FC<EnhancedCartBarProps> = ({
   totalPrice,
   totalItems,
   onShowCart,
-  primaryColor,
   restaurantName,
   cartAnimation
 }) => {
@@ -48,8 +46,7 @@ export const EnhancedCartBar: React.FC<EnhancedCartBarProps> = ({
       >
         <Button
           onClick={onShowCart}
-          className="w-full h-16 rounded-2xl shadow-2xl hover:shadow-glow transition-all duration-300 relative overflow-hidden"
-          style={{ backgroundColor: primaryColor || undefined }}
+          className="w-full h-16 rounded-2xl shadow-2xl transition-all duration-300 relative overflow-hidden bg-brand-primary text-primary-foreground hover:bg-brand-primary-hover"
         >
           {/* Background gradient effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
@@ -58,7 +55,7 @@ export const EnhancedCartBar: React.FC<EnhancedCartBarProps> = ({
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="w-6 h-6" />
-                <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-background text-foreground">
+                <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-accent text-accent-foreground">
                   {totalItems}
                 </Badge>
               </div>

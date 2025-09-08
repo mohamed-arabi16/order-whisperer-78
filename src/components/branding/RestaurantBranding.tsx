@@ -10,9 +10,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Palette, Save, Eye, X } from "lucide-react";
+import { Upload, Palette, Save, Eye, X, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import Color from 'color';
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,6 +68,8 @@ const RestaurantBranding = (): JSX.Element => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
   const [logoPosition, setLogoPosition] = useState<'left' | 'center' | 'right'>('left');
+  const [contrastRatio, setContrastRatio] = useState(0);
+  const [isContrastValid, setIsContrastValid] = useState(true);
   const [socialMediaLinks, setSocialMediaLinks] = useState({
     facebook: '',
     instagram: '',
@@ -77,6 +80,18 @@ const RestaurantBranding = (): JSX.Element => {
   useEffect(() => {
     fetchTenantData();
   }, []);
+
+  useEffect(() => {
+    try {
+      const color = Color(selectedColor);
+      const contrast = color.contrast(Color('#FFFFFF'));
+      setContrastRatio(contrast);
+      setIsContrastValid(contrast >= 4.5);
+    } catch (error) {
+      // Invalid color string, do nothing
+      setIsContrastValid(false);
+    }
+  }, [selectedColor]);
 
   const fetchTenantData = async () => {
     setLoading(true);
@@ -399,6 +414,16 @@ const RestaurantBranding = (): JSX.Element => {
                     style={{ backgroundColor: selectedColor }}
                   ></div>
                 </div>
+
+                {!isContrastValid && (
+                  <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive">
+                    <AlertTriangle className="h-5 w-5" />
+                    <div className="text-sm">
+                      <p className="font-bold">{t('branding.contrastWarning.title')}</p>
+                      <p>{t('branding.contrastWarning.description')}</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

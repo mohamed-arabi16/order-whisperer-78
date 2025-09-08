@@ -372,6 +372,10 @@
       "facebook": "Facebook",
       "instagram": "Instagram",
       "twitter": "Twitter"
+    },
+    "contrastWarning": {
+      "title": "Low Contrast",
+      "description": "This color has low contrast with white text, which might make it hard to read."
     }
   },
   "qr": {
