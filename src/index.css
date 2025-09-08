@@ -65,52 +65,43 @@
   }
 
   .dark {
-    /* Dark mode for restaurants - warm, cozy atmosphere */
-    --background: 20 14% 8%;
-    --foreground: 35 15% 98%;
+    --background: #2E373C;
+    --foreground: #FFFFFF;
 
-    --card: 20 14% 10%;
-    --card-foreground: 35 15% 98%;
+    --card: #323848;
+    --card-foreground: #FFFFFF;
 
-    --popover: 20 14% 10%;
-    --popover-foreground: 35 15% 98%;
+    --popover: #323848;
+    --popover-foreground: #FFFFFF;
 
-    --primary: 42 88% 65%;
-    --primary-foreground: 20 14% 8%;
-    --primary-glow: 42 88% 75%;
+    --primary: #5034AF;
+    --primary-foreground: #FFFFFF;
+    --primary-hover: #654AC0;
+    --primary-glow: rgba(80, 52, 175, 0.4);
 
-    --secondary: 20 14% 12%;
-    --secondary-foreground: 35 15% 98%;
+    --secondary: #323848;
+    --secondary-foreground: #FFFFFF;
 
-    --muted: 20 14% 12%;
-    --muted-foreground: 35 8% 60%;
+    --muted: #323848;
+    --muted-foreground: #a0aec0;
 
-    --accent: 12 85% 65%;
-    --accent-foreground: 20 14% 8%;
+    --accent: #00C4B3;
+    --accent-foreground: #2E373C;
+    --accent-hover: #1DDCCD;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 35 15% 98%;
+    --destructive: #E53E3E;
+    --destructive-foreground: #FFFFFF;
 
-    --border: 20 14% 18%;
-    --input: 20 14% 18%;
-    --ring: 42 88% 65%;
-
-    /* Dark mode premium colors */
-    --fresh-green: 142 70% 45%;
-    --warm-orange: 25 90% 60%;
-    --gold-accent: 45 95% 65%;
-    --deep-red: 0 65% 50%;
+    --border: #5034AF;
+    --input: #5034AF;
+    --ring: #00C4B3;
     
-    /* Dark mode enhanced gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--warm-orange)));
-    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(20 14% 12%));
-    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(15 85% 70%));
-    --gradient-warm: linear-gradient(135deg, hsl(var(--warm-orange)/0.8), hsl(var(--gold-accent)/0.6));
+    --gradient-hero: linear-gradient(135deg, #2E373C, #5034AF);
+    --gradient-card: linear-gradient(145deg, #323848, #2E373C);
     
-    /* Dark mode enhanced shadows */
-    --shadow-warm: 0 10px 30px -10px hsl(var(--primary) / 0.3);
-    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.4);
-    --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.4);
+    --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.2);
+    --shadow-glow: 0 0 20px rgba(80, 52, 175, 0.4);
+    --shadow-warm: 0 0 20px rgba(80, 52, 175, 0.4);
   }
 }
 

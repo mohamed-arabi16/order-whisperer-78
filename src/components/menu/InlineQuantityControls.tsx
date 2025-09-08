@@ -8,7 +8,6 @@ interface InlineQuantityControlsProps {
   onIncrement: () => void;
   onDecrement: () => void;
   isLoading?: boolean;
-  primaryColor?: string;
 }
 
 export const InlineQuantityControls: React.FC<InlineQuantityControlsProps> = ({
@@ -16,7 +15,6 @@ export const InlineQuantityControls: React.FC<InlineQuantityControlsProps> = ({
   onIncrement,
   onDecrement,
   isLoading = false,
-  primaryColor
 }) => {
   if (quantity === 0) {
     return (
@@ -24,8 +22,7 @@ export const InlineQuantityControls: React.FC<InlineQuantityControlsProps> = ({
         size="sm"
         onClick={onIncrement}
         disabled={isLoading}
-        className="h-8 px-3 rounded-full hover-scale"
-        style={{ backgroundColor: primaryColor || undefined }}
+        className="h-8 px-3 rounded-full bg-brand-primary text-primary-foreground hover:bg-brand-primary-hover"
       >
         {isLoading ? (
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -67,8 +64,7 @@ export const InlineQuantityControls: React.FC<InlineQuantityControlsProps> = ({
         size="sm"
         onClick={onIncrement}
         disabled={isLoading}
-        className="h-8 w-8 rounded-full p-0 hover-scale"
-        style={{ backgroundColor: primaryColor || undefined }}
+        className="h-8 w-8 rounded-full p-0 bg-brand-primary text-primary-foreground hover:bg-brand-primary-hover"
       >
         {isLoading ? (
           <Loader2 className="w-3 h-3 animate-spin" />

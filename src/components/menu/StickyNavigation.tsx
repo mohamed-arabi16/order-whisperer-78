@@ -21,7 +21,6 @@ interface StickyNavigationProps {
   onSearchChange: (query: string) => void;
   onCategorySelect: (categoryId: string) => void;
   phoneNumber?: string;
-  primaryColor?: string;
 }
 
 export const StickyNavigation: React.FC<StickyNavigationProps> = ({
@@ -31,7 +30,6 @@ export const StickyNavigation: React.FC<StickyNavigationProps> = ({
   onSearchChange,
   onCategorySelect,
   phoneNumber,
-  primaryColor
 }) => {
   const { isRTL } = useTranslation();
   const categoryTabsRef = useRef<HTMLDivElement>(null);
@@ -101,17 +99,15 @@ export const StickyNavigation: React.FC<StickyNavigationProps> = ({
                   onClick={() => onCategorySelect(category.id)}
                   className={`whitespace-nowrap rounded-full transition-all relative ${
                     isActive 
-                      ? 'text-primary-foreground shadow-glow' 
+                      ? 'bg-brand-primary text-primary-foreground shadow-glow'
                       : 'hover:bg-muted/80'
                   }`}
-                  style={isActive ? { backgroundColor: primaryColor || undefined } : undefined}
                 >
                   {category.name}
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full"
-                      style={{ backgroundColor: primaryColor || 'hsl(var(--primary))' }}
+                      className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-brand-primary"
                     />
                   )}
                 </Button>

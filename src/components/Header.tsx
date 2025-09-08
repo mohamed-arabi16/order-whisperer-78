@@ -45,16 +45,16 @@ const Header = (): JSX.Element | null => {
 
         {/* Desktop Navigation */}
         <nav className={`hidden md:flex items-center ${isRTL ? 'space-x-reverse space-x-8' : 'space-x-8'}`}>
-          <a href="/#features" className="text-muted-foreground hover:text-foreground transition-smooth">
+          <a href="/#features" className={`transition-smooth ${location.hash === '#features' ? 'text-primary' : 'text-muted-foreground hover:text-accent'}`}>
             {t('header.features')}
           </a>
-          <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-smooth">
+          <Link to="/pricing" className={`transition-smooth ${location.pathname === '/pricing' ? 'text-primary' : 'text-muted-foreground hover:text-accent'}`}>
             {t('header.pricing')}
           </Link>
-          <a href="/#demo" className="text-muted-foreground hover:text-foreground transition-smooth">
+          <a href="/#demo" className={`transition-smooth ${location.hash === '#demo' ? 'text-primary' : 'text-muted-foreground hover:text-accent'}`}>
             {t('header.demo')}
           </a>
-          <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-smooth">
+          <Link to="/contact" className={`transition-smooth ${location.pathname === '/contact' ? 'text-primary' : 'text-muted-foreground hover:text-accent'}`}>
             {t('header.contact')}
           </Link>
         </nav>
@@ -115,16 +115,16 @@ const Header = (): JSX.Element | null => {
       {isMenuOpen && (
         <div className="absolute top-16 left-0 right-0 md:hidden bg-background border-b border-border shadow-lg">
           <nav className="container mx-auto px-4 py-4 space-y-4">
-            <a href="/#features" className="block text-muted-foreground hover:text-foreground transition-smooth" onClick={() => setIsMenuOpen(false)}>
+            <a href="/#features" className={`block transition-smooth ${location.hash === '#features' ? 'text-primary' : 'text-muted-foreground hover:text-accent'}`} onClick={() => setIsMenuOpen(false)}>
               {t('header.features')}
             </a>
-            <Link to="/pricing" className="block text-muted-foreground hover:text-foreground transition-smooth" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/pricing" className={`block transition-smooth ${location.pathname === '/pricing' ? 'text-primary' : 'text-muted-foreground hover:text-accent'}`} onClick={() => setIsMenuOpen(false)}>
               {t('header.pricing')}
             </Link>
-            <a href="/#demo" className="block text-muted-foreground hover:text-foreground transition-smooth" onClick={() => setIsMenuOpen(false)}>
+            <a href="/#demo" className={`block transition-smooth ${location.hash === '#demo' ? 'text-primary' : 'text-muted-foreground hover:text-accent'}`} onClick={() => setIsMenuOpen(false)}>
               {t('header.demo')}
             </a>
-            <Link to="/contact" className="block text-muted-foreground hover:text-foreground transition-smooth" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/contact" className={`block transition-smooth ${location.pathname === '/contact' ? 'text-primary' : 'text-muted-foreground hover:text-accent'}`} onClick={() => setIsMenuOpen(false)}>
               {t('header.contact')}
             </Link>
             <div className="pt-4 space-y-2">

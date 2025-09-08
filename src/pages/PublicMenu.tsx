@@ -16,6 +16,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { generateWhatsAppMessage, openWhatsApp, validatePhoneNumber } from "@/lib/whatsapp";
+import { lightenHexColor } from "@/lib/utils";
 import PublicMenuSkeleton from "@/components/menu/PublicMenuSkeleton";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { MenuItemCard } from "@/components/menu/MenuItemCard";
@@ -113,6 +114,11 @@ const PublicMenu = (): JSX.Element => {
           ...tenantData,
           social_media_links: (tenantData.social_media_links as { facebook?: string; instagram?: string; twitter?: string } | null),
         });
+
+        if (tenantData.primary_color) {
+          document.documentElement.style.setProperty('--custom-primary', tenantData.primary_color);
+          document.documentElement.style.setProperty('--custom-primary-hover', lightenHexColor(tenantData.primary_color, 20));
+        }
 
         // Fetch categories
         const { data: categoriesData, error: categoriesError } = await supabase
@@ -340,10 +346,7 @@ const PublicMenu = (): JSX.Element => {
                 />
               )}
               <div>
-                <h1 
-                  className="text-xl font-bold"
-                  style={{ color: tenant.primary_color || 'hsl(var(--primary))' }}
-                >
+                <h1 className="text-xl font-bold text-brand-primary">
                   {tenant.name}
                 </h1>
                 {tenant.address && (
@@ -369,7 +372,6 @@ const PublicMenu = (): JSX.Element => {
           onSearchChange={setSearchQuery}
           onCategorySelect={scrollToCategory}
           phoneNumber={tenant.phone_number || undefined}
-          primaryColor={tenant.primary_color || undefined}
         />
       </div>
 
@@ -409,7 +411,6 @@ const PublicMenu = (): JSX.Element => {
                     onRemoveFromCart={() => removeFromCart(item.id)}
                     onToggleFavorite={() => toggleFavorite(item.id)}
                     onViewDetails={() => setSelectedItem(item)}
-                    primaryColor={tenant.primary_color || undefined}
                   />
                 ))}
               </div>
@@ -424,7 +425,6 @@ const PublicMenu = (): JSX.Element => {
         totalPrice={totalPrice}
         totalItems={totalItems}
         onShowCart={() => setShowCart(true)}
-        primaryColor={tenant.primary_color || undefined}
         restaurantName={tenant.name}
         cartAnimation={cartAnimation}
       />
@@ -472,8 +472,7 @@ const PublicMenu = (): JSX.Element => {
                       is_available: true, 
                       display_order: 0 
                     } as MenuItem)}
-                    className="h-8 w-8 p-0"
-                    style={{ backgroundColor: tenant.primary_color || undefined }}
+                    className="h-8 w-8 p-0 bg-brand-primary text-primary-foreground hover:bg-brand-primary-hover"
                   >
                     +
                   </Button>
@@ -485,7 +484,7 @@ const PublicMenu = (): JSX.Element => {
           <div className="flex-shrink-0 pt-4 border-t space-y-4">
             <div className="flex justify-between items-center font-bold text-lg">
               <span>المجموع:</span>
-              <span style={{ color: tenant.primary_color || 'hsl(var(--primary))' }}>
+              <span className="text-brand-primary">
                 {formatPrice(totalPrice)}
               </span>
             </div>
@@ -493,8 +492,7 @@ const PublicMenu = (): JSX.Element => {
             <Button
               onClick={handleWhatsAppOrder}
               disabled={isProcessingOrder || cart.length === 0}
-              className="w-full h-12 text-lg"
-              style={{ backgroundColor: tenant.primary_color || undefined }}
+              className="w-full h-12 text-lg bg-brand-primary text-primary-foreground hover:bg-brand-primary-hover"
             >
               {isProcessingOrder ? (
                 <>
@@ -530,10 +528,7 @@ const PublicMenu = (): JSX.Element => {
                   <p className="text-muted-foreground">{selectedItem.description}</p>
                 )}
                 <div className="flex items-center justify-between">
-                  <span 
-                    className="text-2xl font-bold"
-                    style={{ color: tenant.primary_color || 'hsl(var(--primary))' }}
-                  >
+                  <span className="text-2xl font-bold text-brand-primary">
                     {formatPrice(selectedItem.price)}
                   </span>
                   <Button
@@ -541,8 +536,7 @@ const PublicMenu = (): JSX.Element => {
                       addToCart(selectedItem);
                       setSelectedItem(null);
                     }}
-                    className="px-6"
-                    style={{ backgroundColor: tenant.primary_color || undefined }}
+                    className="px-6 bg-brand-primary text-primary-foreground hover:bg-brand-primary-hover"
                   >
                     أضف إلى السلة
                   </Button>
@@ -591,9 +585,8 @@ const PublicMenu = (): JSX.Element => {
                 setShowFeedback(false);
                 setFeedback({ rating: 0, comment: "" });
               }}
-              className="w-full"
+              className="w-full bg-brand-primary text-primary-foreground hover:bg-brand-primary-hover"
               disabled={feedback.rating === 0}
-              style={{ backgroundColor: tenant.primary_color || undefined }}
             >
               إرسال التقييم
             </Button>

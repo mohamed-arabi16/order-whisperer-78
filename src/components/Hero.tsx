@@ -23,11 +23,11 @@ const Hero = (): JSX.Element => {
             {t('hero.subtitle')}
           </p>
           <div className={`flex flex-col sm:flex-row gap-4 justify-center ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
-            <Button size="lg" className="gradient-hero text-primary-foreground hover:shadow-glow hover:scale-105 font-semibold">
+            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary-hover">
               {t('hero.getStarted')}
               <ArrowRight className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} />
             </Button>
-            <Button size="lg" variant="outline" className="hover:bg-accent hover:text-accent-foreground">
+            <Button size="lg" variant="outline" className="bg-accent text-accent-foreground hover:bg-accent-hover">
               <Play className="h-5 w-5 mr-2" />
               {t('hero.watchDemo')}
             </Button>
@@ -40,7 +40,7 @@ const Hero = (): JSX.Element => {
             <img
               src={heroImage}
               alt="Restaurant digital menu preview"
-              className="rounded-2xl shadow-warm w-full object-cover max-h-96"
+              className="rounded-2xl shadow-glow w-full object-cover max-h-96"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent rounded-2xl"></div>
           </div>
