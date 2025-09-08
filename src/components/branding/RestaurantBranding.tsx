@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Upload, Palette, Save, Eye, X, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +16,26 @@ import Color from 'color';
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+
+// WCAG AA minimum contrast ratio for normal text
+const MIN_CONTRAST_RATIO = 4.5;
+
+// Theme colors for contrast checking
+const themeColors = {
+  light: {
+    background: '#fdfaf8', // hsl(35 15% 98%)
+    foreground: '#141311', // hsl(20 14% 8%)
+    card: '#ffffff',       // hsl(35 15% 100%)
+    primaryForeground: '#fdfaf8' // hsl(35 15% 98%)
+  },
+  dark: {
+    background: '#1c2541', // hsl(222 47% 11%)
+    foreground: '#f0f4f8', // hsl(210 40% 98%)
+    card: '#2a3657',       // hsl(222 47% 16%)
+    primaryForeground: '#f0f4f8' // hsl(210 40% 98%)
+  }
+};
 
 /**
  * Represents a tenant with branding information.
@@ -34,6 +53,50 @@ interface Tenant {
   };
   description?: string;
 }
+
+/**
+ * Generates a suitable hover color.
+ * @param hex The base color in hex format.
+ * @returns A new hex color string for the hover state.
+ */
+export const generateHoverColor = (hex: string): string => {
+  try {
+    const color = Color(hex);
+    // Darken light colors, lighten dark colors for better hover effect
+    return color.isDark() ? color.lighten(0.2).hex() : color.darken(0.1).hex();
+  } catch (e) {
+    // Fallback for invalid colors
+    return '#cccccc';
+  }
+};
+
+/**
+ * Checks if a color is legible against both light and dark theme backgrounds.
+ * @param hex The color to check.
+ * @returns An object with boolean `isValid` and the lowest contrast ratio found.
+ */
+const checkColorLegibility = (hex: string): { isValid: boolean; worstContrast: number } => {
+  try {
+    const color = Color(hex);
+
+    // Contrast for text on background
+    const lightTextContrast = color.contrast(Color(themeColors.light.card));
+    const darkTextContrast = color.contrast(Color(themeColors.dark.card));
+
+    // Contrast for button background with foreground text
+    const lightButtonContrast = color.contrast(Color(themeColors.light.primaryForeground));
+    const darkButtonContrast = color.contrast(Color(themeColors.dark.primaryForeground));
+
+    const worstContrast = Math.min(lightTextContrast, darkTextContrast, lightButtonContrast, darkButtonContrast);
+
+    return {
+      isValid: worstContrast >= MIN_CONTRAST_RATIO,
+      worstContrast: worstContrast,
+    };
+  } catch (e) {
+    return { isValid: false, worstContrast: 0 };
+  }
+};
 
 /**
  * A component that allows a tenant to customize their restaurant's branding.
@@ -65,11 +128,11 @@ const RestaurantBranding = (): JSX.Element => {
   
   // Form state
   const [selectedColor, setSelectedColor] = useState('#2563eb');
+  const [selectedColorHover, setSelectedColorHover] = useState(generateHoverColor('#2563eb'));
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
   const [logoPosition, setLogoPosition] = useState<'left' | 'center' | 'right'>('left');
-  const [contrastRatio, setContrastRatio] = useState(0);
-  const [isContrastValid, setIsContrastValid] = useState(true);
+  const [legibility, setLegibility] = useState({ isValid: true, worstContrast: 21 });
   const [socialMediaLinks, setSocialMediaLinks] = useState({
     facebook: '',
     instagram: '',
@@ -81,17 +144,30 @@ const RestaurantBranding = (): JSX.Element => {
     fetchTenantData();
   }, []);
 
+  // Update branding styles and validation on color change
   useEffect(() => {
     try {
-      const color = Color(selectedColor);
-      const contrast = color.contrast(Color('#FFFFFF'));
-      setContrastRatio(contrast);
-      setIsContrastValid(contrast >= 4.5);
+      const legibilityResult = checkColorLegibility(selectedColor);
+      setLegibility(legibilityResult);
+
+      const hoverColor = generateHoverColor(selectedColor);
+      setSelectedColorHover(hoverColor);
+
+      // Apply live preview styles to the whole document
+      document.documentElement.style.setProperty('--custom-primary', selectedColor);
+      document.documentElement.style.setProperty('--custom-primary-hover', hoverColor);
     } catch (error) {
-      // Invalid color string, do nothing
-      setIsContrastValid(false);
+      setLegibility({ isValid: false, worstContrast: 0 });
     }
   }, [selectedColor]);
+
+  // Cleanup styles on component unmount
+  useEffect(() => {
+    return () => {
+      document.documentElement.style.removeProperty('--custom-primary');
+      document.documentElement.style.removeProperty('--custom-primary-hover');
+    };
+  }, []);
 
   const fetchTenantData = async () => {
     setLoading(true);
@@ -197,7 +273,16 @@ const RestaurantBranding = (): JSX.Element => {
   };
 
   const handleSave = async () => {
-    if (!tenant) return;
+    if (!tenant || !legibility.isValid) {
+      if (!legibility.isValid) {
+        toast({
+          title: t('branding.toast.poorContrastTitle'),
+          description: t('branding.toast.poorContrastDescription'),
+          variant: "destructive",
+        });
+      }
+      return;
+    }
 
     setSaving(true);
     try {
@@ -415,12 +500,15 @@ const RestaurantBranding = (): JSX.Element => {
                   ></div>
                 </div>
 
-                {!isContrastValid && (
-                  <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive">
-                    <AlertTriangle className="h-5 w-5" />
+                {!legibility.isValid && (
+                  <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive transition-all duration-300">
+                    <AlertTriangle className="h-5 w-5 flex-shrink-0" />
                     <div className="text-sm">
                       <p className="font-bold">{t('branding.contrastWarning.title')}</p>
-                      <p>{t('branding.contrastWarning.description')}</p>
+                      <p>
+                        {t('branding.contrastWarning.description')} (
+                        {t('branding.contrastWarning.ratio')}: {legibility.worstContrast.toFixed(2)})
+                      </p>
                     </div>
                   </div>
                 )}
@@ -513,8 +601,13 @@ const RestaurantBranding = (): JSX.Element => {
             {/* Save Button */}
             <Button
               onClick={handleSave}
-              disabled={saving || uploadingLogo}
-              className="w-full gradient-hero text-white"
+              disabled={saving || uploadingLogo || !legibility.isValid}
+              className={cn(
+                "w-full text-white",
+                !legibility.isValid
+                  ? "bg-muted-foreground"
+                  : "bg-brand-primary hover:bg-brand-primary-hover"
+              )}
               size="lg"
             >
               <Save className="h-5 w-5 ml-2" />
@@ -540,21 +633,17 @@ const RestaurantBranding = (): JSX.Element => {
                   <div className="w-full h-96 bg-card border-8 border-muted rounded-[2rem] shadow-2xl overflow-hidden">
                     <div className="h-full bg-gradient-to-br from-background to-secondary/20 overflow-y-auto">
                       {/* Preview Header */}
-                      <div className="p-4 border-b border-border bg-card/95">
+                      <div className="p-4 border-b bg-card/95">
                         <div className="flex items-center gap-3">
                           {(logoPreview || logoFile) && (
                             <img
                               src={logoPreview}
                               alt={t('branding.logo.alt')}
-                              className="w-12 h-12 rounded-full object-cover border-2"
-                              style={{ borderColor: selectedColor }}
+                              className="w-12 h-12 rounded-full object-cover border-2 border-brand-primary"
                             />
                           )}
                           <div>
-                            <h1 
-                              className="text-xl font-bold"
-                              style={{ color: selectedColor }}
-                            >
+                            <h1 className="text-xl font-bold text-brand-primary">
                               {tenant.name}
                             </h1>
                             <p className="text-sm text-muted-foreground">
@@ -567,13 +656,7 @@ const RestaurantBranding = (): JSX.Element => {
                       {/* Preview Content */}
                       <div className="p-4 space-y-4">
                         <div className="space-y-3">
-                          <h2 
-                            className="text-lg font-bold pb-2 border-b"
-                            style={{ 
-                              color: selectedColor,
-                              borderColor: selectedColor + '40'
-                            }}
-                          >
+                          <h2 className="text-lg font-bold pb-2 border-b text-brand-primary border-brand-primary/20">
                             {t('branding.preview.category')}
                           </h2>
                           <div className="space-y-2">
@@ -583,20 +666,13 @@ const RestaurantBranding = (): JSX.Element => {
                                 <p className="text-xs text-muted-foreground">
                                   {t('branding.preview.item.description')}
                                 </p>
-                                <span 
-                                  className="text-sm font-bold"
-                                  style={{ color: selectedColor }}
-                                >
+                                <span className="text-sm font-bold text-brand-primary">
                                   {t('branding.preview.item.price')}
                                 </span>
                               </div>
                               <Button 
                                 size="sm" 
-                                className="h-6 px-2 text-xs"
-                                style={{ 
-                                  backgroundColor: selectedColor,
-                                  borderColor: selectedColor
-                                }}
+                                className="h-6 px-2 text-xs bg-brand-primary text-primary-foreground hover:bg-brand-primary-hover"
                               >
                                 {t('branding.preview.item.add')}
                               </Button>
@@ -604,23 +680,13 @@ const RestaurantBranding = (): JSX.Element => {
                           </div>
                         </div>
 
-                        <div 
-                          className="p-3 rounded-lg border"
-                          style={{ 
-                            borderColor: selectedColor + '40',
-                            backgroundColor: selectedColor + '10'
-                          }}
-                        >
+                        <div className="p-3 rounded-lg border border-brand-primary/20 bg-brand-primary/10">
                           <div className="flex items-center justify-between">
                             <span className="text-sm font-medium">{t('branding.preview.cart.empty')}</span>
                             <Button 
                               size="sm" 
                               disabled 
-                              className="text-xs"
-                              style={{ 
-                                backgroundColor: selectedColor + '80',
-                                borderColor: selectedColor
-                              }}
+                              className="text-xs bg-brand-primary/80"
                             >
                               {t('branding.preview.cart.send')}
                             </Button>
