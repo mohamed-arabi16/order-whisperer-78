@@ -16,8 +16,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { generateWhatsAppMessage, openWhatsApp, validatePhoneNumber } from "@/lib/whatsapp";
-import { lightenHexColor } from "@/lib/utils";
 import PublicMenuSkeleton from "@/components/menu/PublicMenuSkeleton";
+import { generateHoverColor } from "@/components/branding/RestaurantBranding";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { MenuItemCard } from "@/components/menu/MenuItemCard";
 import { StickyNavigation } from "@/components/menu/StickyNavigation";
@@ -117,7 +117,7 @@ const PublicMenu = (): JSX.Element => {
 
         if (tenantData.primary_color) {
           document.documentElement.style.setProperty('--custom-primary', tenantData.primary_color);
-          document.documentElement.style.setProperty('--custom-primary-hover', lightenHexColor(tenantData.primary_color, 20));
+          document.documentElement.style.setProperty('--custom-primary-hover', generateHoverColor(tenantData.primary_color));
         }
 
         // Fetch categories
