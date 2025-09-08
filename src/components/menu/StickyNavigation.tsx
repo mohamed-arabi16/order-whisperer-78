@@ -97,17 +97,13 @@ export const StickyNavigation: React.FC<StickyNavigationProps> = ({
                   variant={isActive ? "default" : "ghost"}
                   size="sm"
                   onClick={() => onCategorySelect(category.id)}
-                  className={`whitespace-nowrap rounded-full transition-all relative ${
-                    isActive 
-                      ? 'bg-brand-primary text-primary-foreground shadow-glow'
-                      : 'hover:bg-muted/80'
-                  }`}
+                  className={`whitespace-nowrap rounded-full transition-all relative ${isActive ? 'shadow-glow' : ''}`}
                 >
                   {category.name}
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-brand-primary"
+                      className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-accent"
                     />
                   )}
                 </Button>
