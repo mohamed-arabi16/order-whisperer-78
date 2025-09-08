@@ -13,21 +13,21 @@ const Hero = (): JSX.Element => {
   const { t, isRTL } = useTranslation();
 
   return (
-    <section className="pt-24 pb-16 px-4 bg-gradient-to-br from-background to-secondary/20" dir={isRTL ? 'rtl' : 'ltr'}>
+    <section className="pt-24 pb-16 px-4 gradient-hero" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="container mx-auto text-center">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 gradient-hero bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent">
             {t('hero.title')}
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
             {t('hero.subtitle')}
           </p>
           <div className={`flex flex-col sm:flex-row gap-4 justify-center ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary-hover">
+            <Button size="lg" variant="hero">
               {t('hero.getStarted')}
               <ArrowRight className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} />
             </Button>
-            <Button size="lg" variant="outline" className="bg-accent text-accent-foreground hover:bg-accent-hover">
+            <Button size="lg" variant="outline">
               <Play className="h-5 w-5 mr-2" />
               {t('hero.watchDemo')}
             </Button>

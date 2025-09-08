@@ -65,8 +65,8 @@
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 222 47% 11%; /* Dark Blue */
+    --foreground: 210 40% 98%; /* White */
 
     --card: 222 47% 16%;
     --card-foreground: 210 40% 98%;
@@ -74,7 +74,8 @@
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 258 69% 56%;
+    --primary: 258 69% 45%; /* Purple */
+    --primary-hover: 255 51% 52%; /* Lightened Purple (#654AC0) for hover */
     --primary-foreground: 210 40% 98%;
     --primary-glow: 258 69% 56%;
 
@@ -84,18 +85,18 @@
     --muted: 217 33% 20%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 173 100% 39%;
+    --accent: 175 76% 46%; /* Turquoise (#1DDCCD) */
     --accent-foreground: 222 47% 11%;
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 33% 25%;
-    --input: 217 33% 25%;
-    --ring: 258 69% 56%;
+    --border: 258 69% 35%;
+    --input: 258 69% 35%;
+    --ring: 175 76% 46%; /* Turquoise for focus */
     
     /* Custom dark theme gradients and shadows */
-    --gradient-hero: linear-gradient(135deg, hsl(222, 47%, 11%), hsl(258, 69%, 56%));
+    --gradient-hero: linear-gradient(135deg, hsl(222, 47%, 11%), hsl(258, 69%, 45%)); /* Dark Blue -> Purple */
     --gradient-card: linear-gradient(145deg, hsl(222, 47%, 16%), hsl(222, 47%, 11%));
     
     --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.2);
